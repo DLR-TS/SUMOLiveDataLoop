@@ -12,19 +12,12 @@
 # @date    2013-04-18
 
 """
-Schema file for use with sumoldl
+Schema file for use with sumo_ldl
 """
 import os, sys
 from sumo_ldl.tools import Table, noneToNull, SAFE_DIV, reversedMap
 from sumo_ldl.main import main
 from sumo_ldl import database
-
-name = "AIM"
-#SEARCH_PATH_SUFFIX = 'tdp_navteq_2013q1'
-SEARCH_PATH_SUFFIX = 'tdp_navteq_2010q2_sumo2'
-SEARCH_PATH_PREFIX = 'SET search_path to public, tdp_data, '
-# init in dsp/main.py
-SEARCH_PATH = None
 
 class Tables:
     # only tables and columns which differ between schemas are included
@@ -248,7 +241,7 @@ class GenerateSimulationInput:
     def getTypedTrafficValues(conn, types, begin, end, qualityThreshold, intervalLength, timeline):
         """return rows of [edge_id, time, interval_length, flow, speed_m_per_s, quality, type]"""
         if timeline: 
-            raise Exception("timeline not support for dbSchema '%s'" % name)
+            raise Exception("timeline not support for dbSchema '%s'" % __file__)
         result = []
         reverseEdgeMap = reversedMap(AggregateData.getSimulationEdgeMap(conn))
         for type in types:

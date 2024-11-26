@@ -71,11 +71,6 @@ def execSQL(conn, commands, doCommit=False, manySet=None, fetchId=False,
     try:
         cursor = conn.cursor()
         try:
-            if search_path is None and setting.dbSchema is not None:
-                search_path = setting.dbSchema.SEARCH_PATH
-            if search_path:
-                debug_print(search_path)
-                cursor.execute(search_path)
             for command in commands:
                 debug_print(command)
                 if manySet is not None:

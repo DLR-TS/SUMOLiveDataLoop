@@ -45,8 +45,6 @@ def _init(dbSchema, loopDir):
     optParser.add_option("-b", "--begin", type="string", help="begin time (overrides config setting)")
     optParser.add_option("-e", "--end", type="string", help="end time (overrides config setting)")
     optParser.add_option("-i", "--timeline", type="string", help="time line to use (if any)")
-    optParser.add_option("-p", "--dbsearchpath", type="string", default=dbSchema.SEARCH_PATH_SUFFIX,
-            help="DB search path suffix to determine the postgres schema")
     optParser.add_option("--no-correction", dest="do_correction", default=True,
             action="store_false", help="Skip detector correction (if already handled by another process)")
     optParser.add_option("--clean", default=False, action="store_true", help="clean tables")
@@ -55,8 +53,6 @@ def _init(dbSchema, loopDir):
     # Reads the settings and processes them to initialize the loop.
     filename = os.path.join(loopDir, options.confFile) 
     setting.init(dbSchema, filename)
-    if dbSchema.SEARCH_PATH_PREFIX:
-        dbSchema.SEARCH_PATH = dbSchema.SEARCH_PATH_PREFIX + options.dbsearchpath
 
     if args:
         print("Invalid argument.", file=sys.stderr)
