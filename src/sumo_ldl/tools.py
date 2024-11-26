@@ -89,10 +89,10 @@ def benchmark(func):
     def benchmark_wrapper(*args, **kwargs):
         started = time.time()
         now = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime())
-        print('function %s called at %s' % (func.__name__, now))
+        print(('function %s called at %s' % (func.__name__, now)))
         sys.stdout.flush()
         result = func(*args, **kwargs)
-        print('function %s finished after %f seconds' % (func.__name__, time.time() - started))
+        print(('function %s finished after %f seconds' % (func.__name__, time.time() - started)))
         sys.stdout.flush()
         return result
     return benchmark_wrapper
@@ -110,7 +110,7 @@ class Table:
     # class for storing table and column name strings
     def __init__(self, name, **columns):
         self.name = name
-        for attr, value in columns.items():
+        for attr, value in list(columns.items()):
             setattr(self, attr, value)
 
     def __str__(self):
@@ -139,4 +139,4 @@ SAFE_DIV = safeBinaryOperator(operator.truediv)
 
 def reversedMap(map):
     """return reversed map assuming input is a bijection"""
-    return dict([(v,k) for k,v in map.items()])
+    return dict([(v,k) for k,v in list(map.items())])

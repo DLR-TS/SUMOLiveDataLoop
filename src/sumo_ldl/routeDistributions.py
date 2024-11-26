@@ -15,11 +15,11 @@ edges in the network. Usually called by simulationRun.py.
 """
 import os, shutil
 from datetime import datetime, timedelta
-
-import setting, tools, database
-from setting import dbSchema
-from tools import reversedMap
 import collections
+
+from . import setting, tools, database
+from .setting import dbSchema
+from .tools import reversedMap
 
 STATIC = set()
 DYNAMIC = set()
@@ -71,11 +71,11 @@ def generateDynamic(file, isFirst, intervalBegin, intervalEnd, routeInterval):
                 DYNAMIC.add(edge_id)
     routeStart = tools.daySecond(tools.roundToMinute(intervalEnd - routeInterval, routeInterval, tools.ROUND_DOWN)) 
     with open(file, 'w') as f:
-        print >> f, '<?xml version="1.0"?>\n<add>'
+        print('<?xml version="1.0"?>\n<add>', file=f)
         for edge in DYNAMIC:
-            print >> f, '    <routeProbe id="routedist_%s" edge="%s"' % (edge, edge),
-            print >> f, 'freq="%s" begin="%s" file="NUL"/>' % (routeInterval.seconds, routeStart) 
-        print >> f, '</add>'
+            print('    <routeProbe id="routedist_%s" edge="%s"' % (edge, edge), end=' ', file=f)
+            print('freq="%s" begin="%s" file="NUL"/>' % (routeInterval.seconds, routeStart), file=f) 
+        print('</add>', file=f)
 
 
 def generateStatic(file, isFirst, intervalBegin, intervalEnd, edges, routeDir):
@@ -98,7 +98,7 @@ def generateStatic(file, isFirst, intervalBegin, intervalEnd, edges, routeDir):
 
     # all edges will be generated, not only the new coming ones
     with open(file, 'w') as distributions:
-        print >> distributions, '<?xml version="1.0"?>\n<routes>'
+        print('<?xml version="1.0"?>\n<routes>', file=distributions)
         for edge in edges:
             dirName = ""
             if len(edge) > 2:
@@ -129,13 +129,13 @@ def generateStatic(file, isFirst, intervalBegin, intervalEnd, edges, routeDir):
                             f = open(os.path.join(routeDir,dirName,edge))
                             for line in f:
                                 elems = line.split('"')
-                                print >> distributions, '%s"routedist_%s"%s"%s"%s"%s"%s\n' %(elems[0],me,elems[2],elems[3],elems[4],elems[5],elems[6])
+                                print('%s"routedist_%s"%s"%s"%s"%s"%s\n' %(elems[0],me,elems[2],elems[3],elems[4],elems[5],elems[6]), file=distributions)
                             f.close()
                         findRefEdge = False
             if findRefEdge:
-                print 'Warning: no existing route distribtuion file sutiable for', me
-        print >> distributions, '</routes>'
+                print('Warning: no existing route distribtuion file sutiable for', me)
+        print('</routes>', file=distributions)
     # check if any fbd_id that has detectors has no corresponding edge file containing route distribution
     uncoveredFbd.difference_update(coveredFbd)
     if uncoveredFbd:
-        print 'Warning: the file for edges', uncoveredFbd, 'does not exist.'
+        print('Warning: the file for edges', uncoveredFbd, 'does not exist.')

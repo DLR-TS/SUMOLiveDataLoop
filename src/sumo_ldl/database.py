@@ -11,17 +11,13 @@
 """
 Database interface for the Delphi simulation setup.
 """
-from __future__ import print_function
+
 import sys, traceback
 from datetime import datetime, timedelta
 
-import setting
+import psycopg2
 
-try:
-    import psycopg2 as pgdb
-except ImportError:
-    import pgdb
-    print("Warning! You are using the outdated pgdb driver, please install psycopg2.", file=sys.stderr)
+from . import setting
 
 try:
     import cx_Oracle
@@ -30,7 +26,7 @@ except ImportError:
     haveOracle = False
     print("Warning! Oracle client is not available.", file=sys.stderr)
 
-OperationalError = pgdb.OperationalError
+OperationalError = psycopg2.OperationalError
 
 VERBOSE = False
 
@@ -39,7 +35,7 @@ def createDatabaseConnection(prefix="", dbPrefix=""):
         return setting.getOption("Database", "testinput")
 
     if not haveOracle or (setting.hasOption("Database", "postgres") and setting.getOptionBool("Database", "postgres")):
-        conn = pgdb.connect(host = setting.getOption("Database", prefix + "host"),
+        conn = psycopg2.connect(host = setting.getOption("Database", prefix + "host"),
                             user = setting.getOption("Database", prefix + "user"),
                             password = setting.getOption("Database", prefix + "passwd"),
                             database = setting.getOption("Database", dbPrefix + "db"))

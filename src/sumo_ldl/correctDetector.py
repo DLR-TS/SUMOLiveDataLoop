@@ -17,19 +17,20 @@ import os
 import pickle, csv
 from datetime import datetime, timedelta
 from collections import defaultdict
-from numpy.lib.polynomial import polyfit
 
-import aggregateData
-import fusion
-import correctVisual
-import setting, database
-from setting import hasOption, getDetectorOption, getDetectorOptionBool, getDetectorOptionMinutes, getLoopOptionMinutes, getLoopOption, getLoopOptionBool, getOptionBool
-from setting import dbSchema
-from database import as_time, as_interval
-from tools import roundToMinute, ROUND_DOWN, ROUND_UP
-from step import pythonStep
-from evalDetector import Data, isDataError
-import extrapolation
+from numpy.polynomial import Polynomial
+
+from . import aggregateData
+from . import fusion
+from . import correctVisual
+from . import setting, database
+from .setting import hasOption, getDetectorOption, getDetectorOptionBool, getDetectorOptionMinutes, getLoopOptionMinutes, getLoopOption, getLoopOptionBool, getOptionBool
+from .setting import dbSchema
+from .database import as_time, as_interval
+from .tools import roundToMinute, ROUND_DOWN, ROUND_UP
+from .step import pythonStep
+from .evalDetector import Data, isDataError
+from . import extrapolation
 
 _DEBUG = False
 _DEBUG_QUALITY = False
@@ -101,7 +102,7 @@ class DataWindow:
         assert(self.zeroIndexTime <= newZeroTime)
         keepStart = dateToIndex(newZeroTime)
         keepEnd = dateToIndex(endTime)
-        for det, dataList in self.data.iteritems():
+        for det, dataList in self.data.items():
             oldEnd = len(dataList)
             extendBy = max(0, keepEnd - oldEnd)
             self.data[det] = dataList[keepStart:keepEnd] + extendBy * [None]
@@ -123,7 +124,7 @@ class DataWindow:
 
     def __repr__(self):
         lines = []
-        for det, dataList in self.data.iteritems():
+        for det, dataList in self.data.items():
             lines.append("datapoints for detector '%s'" % det)
             for index, time, data in self.enumerate_with_time(dataList):
                 lines.append("%5i: %s, %s" % (index, time, data))
@@ -305,7 +306,7 @@ def polynomialFix(detData, start, end, fix_counts, forecast):
 
             if x:
                 # compute replacement
-                coeffs = polyfit(x, y, DEGREE)
+                coeffs = Polynomial.fit(x, y, DEGREE)
                 for x in range(gapStart, gapEnd):
                     value = sum([coeffs[-p-1] * x ** p for p in range(len(coeffs))])
                     if detData[x].fix(attr, value, _GLOBALS.updateInterval):
@@ -415,19 +416,19 @@ def evalDetectorQuality(conn, intervalStart, intervalEnd, updateInterval):
         # extend sql command
         status_data.append((det, intervalEnd, status, quality, avgDelay))
         if _DEBUG_QUALITY:
-            print intervalEnd, row, quality 
+            print(intervalEnd, row, quality) 
         qualitySum += quality
     if qualitySum == 0:
-        print >> sys.stderr, "Warning! All detectors have insufficient quality.  Writing to DB suspended"
+        print("Warning! All detectors have insufficient quality.  Writing to DB suspended", file=sys.stderr)
     else:
         if _DEBUG_QUALITY:
-            print command
+            print(command)
         else:
 
             if delayRows > 0:
                 delay_info = delaySum / delayRows
-            print "Updating Operating status for %s detectors with average quality %s and average delay %s" % (
-                    len(rows), qualitySum / len(rows), delay_info)
+            print("Updating Operating status for %s detectors with average quality %s and average delay %s" % (
+                    len(rows), qualitySum / len(rows), delay_info))
             # delete previous entries 
             deleteCommand = """DELETE FROM %s
                          WHERE status_time = %s '%s'""" % (
@@ -599,8 +600,8 @@ def identify_errors(rows, checkDoubling, hasLkw):
         try:
             _GLOBALS.data[det][fixedDateIndex] = data
         except:
-            print "ERROR: could not insert detector %s at index %s (%s, %s)" % (
-                    det, fixedDateIndex, len(_GLOBALS.data[det]), date)
+            print("ERROR: could not insert detector %s at index %s (%s, %s)" % (
+                    det, fixedDateIndex, len(_GLOBALS.data[det]), date))
             sys.exit()
         # check for error 4
         data.set_hanging(is_hanging(_GLOBALS.data[det], fixedDateIndex))
@@ -623,7 +624,7 @@ def fixGaps(fixStart, fixEnd, forecast):
     fix_counts = defaultdict(lambda:0)
     fixStartIndex = dateToIndex(fixStart)
     fixEndIndex = dateToIndex(fixEnd)
-    for det, detData in _GLOBALS.data.iteritems():
+    for det, detData in _GLOBALS.data.items():
         # call unfix between fixStart and fixEnd. This avoids interpolated
         # values being used as support and also sets toBeWritten=True
         for index in range(fixStartIndex, fixEndIndex):
@@ -644,7 +645,7 @@ def write_corrected(conn, correctStart, hasLkw):
     # comment it out for Leipzip
     if not getOptionBool("Database", "postgres"):
         deleteData = []
-    for detData in _GLOBALS.data.itervalues():
+    for detData in _GLOBALS.data.values():
         for index, time, data in _GLOBALS.enumerate_with_time(detData, dateToIndex(correctStart)):
             values = data.toValues(time, hasLkw)
             if values is not None:
@@ -748,9 +749,9 @@ def correctDetector(isFirst, correctStart, correctEnd, forecastEnd,
     conn.close()
     # reporting
     forecast_needed = (dateToIndex(forecastEnd) - dateToIndex(correctEnd)) * len(_GLOBALS.data)
-    print correction_summary(len(rows), error_counts, corrected_counts,
-            forecast_needed, forecast_counts, num_written)
-    print "end correct errors : %s TEXTTEST_IGNORE" % datetime.now()
+    print(correction_summary(len(rows), error_counts, corrected_counts,
+            forecast_needed, forecast_counts, num_written))
+    print("end correct errors : %s TEXTTEST_IGNORE" % datetime.now())
     return True
 
 
@@ -787,9 +788,9 @@ def main(isFirst, beginNewDay, loopDir, options):
                     if seconds in available_intervals:
                         setting.updateIntervals.append(seconds)
                     else:
-                        print("Warning: updateinterval %s does not exist in the database" % minutes)
+                        print(("Warning: updateinterval %s does not exist in the database" % minutes))
             except:
-                print("Error:Could not parse value of Detector option 'updateinterval = %s' as a list of floats" % value)
+                print(("Error:Could not parse value of Detector option 'updateinterval = %s' as a list of floats" % value))
                 return False
         else:
             setting.updateIntervals = available_intervals
@@ -815,13 +816,13 @@ def main(isFirst, beginNewDay, loopDir, options):
     aggEnd = roundToMinute(loopRawForecastEnd, aggregate, ROUND_UP)
     assert(aggregate > timedelta(0)) # otherwise aggregation will not terminate
     beginTime = datetime.now()    
-    print """\
+    print("""\
 -----------------------------------------------------------------------------
 Data correction and aggregation from %s to %s
  with data forecast up to %s,
  starting at %s. TEXTTEST_IGNORE
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\
-""" % (correctStart, correctEnd, forecastEnd, beginTime)
+""" % (correctStart, correctEnd, forecastEnd, beginTime))
     # STEPS
     setting.step = 1
     setting.errorOnLastRun = False
@@ -871,9 +872,9 @@ Data correction and aggregation from %s to %s
                    (correctEnd, forecastEnd, aggregate, sourceType))
 
     endTime = datetime.now()
-    print """\
+    print("""\
 Data correction and aggregation ended at %s. TEXTTEST_IGNORE
 Duration: %s TEXTTEST_IGNORE
 -----------------------------------------------------------------------------\
-""" % (endTime, endTime - beginTime)
+""" % (endTime, endTime - beginTime))
     return result != False

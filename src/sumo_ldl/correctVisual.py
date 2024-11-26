@@ -11,13 +11,13 @@
 """
 Corrects and aggregates traffic data from evaluated pictures
 """
-import setting, database
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from aggregateData import insertAggregated
-from evalDetector import Data
-from detector import DetectorReader
+from . import setting, database
+from .aggregateData import insertAggregated
+from .evalDetector import Data
+from .detector import DetectorReader
 
 
 def correctVisual(correctStart, correctEnd):
@@ -65,7 +65,7 @@ def correctVisual(correctStart, correctEnd):
     summary = "db-lines read: %s, written %s" % (len(rows), len(values))
     header = 'attr\terrors'
     entries = ['\t'.join(map(str, [a, error_counts[a]])) for a in Data.attrs]
-    print '\n'.join([summary, header] + entries)
+    print('\n'.join([summary, header] + entries))
 
 def aggregateVisual(start, end, intervalLength):
     """Time aggregation of visual data in the given interval in subintervals

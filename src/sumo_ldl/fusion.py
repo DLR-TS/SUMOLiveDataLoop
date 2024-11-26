@@ -18,10 +18,11 @@ import os,sys
 from datetime import datetime
 from collections import defaultdict
 from itertools import groupby, chain
-import database
-from detector import DetectorReader
-from aggregateData import insertAggregated
-from setting import getOptionBool, dbSchema
+
+from . import database
+from .detector import DetectorReader
+from .aggregateData import insertAggregated
+from .setting import getOptionBool, dbSchema
 
 QUALITY_FACTOR = {
         'loop' : 1.0,
@@ -91,7 +92,7 @@ def _fusion(conn, detReader, intervalEnd, intervalLength, filter=''):
         SELECT edge_id, traffic_id, q, v, quality
         FROM aggregated_traffic a WHERE
         traffic_id in (%s) %s
-        ORDER BY edge_id, quality""" % (','.join(map(str, trafficIDs.keys())), filter)
+        ORDER BY edge_id, quality""" % (','.join(map(str, list(trafficIDs.keys()))), filter)
     #print query
     rows = database.execSQL(conn, query)
     for edge, subrows in groupby(rows, lambda x:x[0]):

@@ -6,7 +6,7 @@ A good idea is to use DBeaver which is cross platform and can handle other datab
 https://dbeaver.io/download/.
 
 ## Python
-- Create a virtualenv (`python -m venv sumoldlenv`) and activate it (`source sumoldlenv/bin/activate` or `sumoldlenv\Scripts\activate`).
+- Create a virtualenv (`python -m venv sumo_ldl_env`) and activate it (`source sumo_ldl_env/bin/activate` or `sumo_ldl_env\Scripts\activate`).
 - Install the requirements `python -m pip install -r requirements.txt`.
 
 

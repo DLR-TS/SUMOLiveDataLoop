@@ -15,10 +15,11 @@ appropriate triggers for the simulation. Usually it is called from runStep.py.
 import os, sys, re
 from datetime import datetime, timedelta
 from collections import defaultdict
-import setting, tools, database
-from setting import dbSchema
-from database import as_time
-from tools import reversedMap
+
+from . import setting, tools, database
+from .setting import dbSchema
+from .database import as_time
+from .tools import reversedMap
 
 class ListWrapper(list):
     """wrapper for normal python lists which limits the output when printing"""
@@ -38,11 +39,11 @@ class ListWrapper(list):
 def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterval, logfile, collectRouteInfo):
     """Writes the time dependent data to the individual files."""
     with open(filename, 'w') as f:
-        print >> f, '<?xml version="1.0"?>\n<add>'
-        for edge, flowsteps in flowMap.iteritems():
+        print('<?xml version="1.0"?>\n<add>', file=f)
+        for edge, flowsteps in flowMap.items():
             routeProbe = (' routeProbe="routedist_%s"' % edge) if collectRouteInfo else ""
-            print >> f, '    <calibrator id="calibrator_%s" lane="%s_0" pos="0" freq="%s" friendlyPos="x" output="%s"%s>' % (
-                edge, edge, calibratorInterval, logfile, routeProbe)
+            print('    <calibrator id="calibrator_%s" lane="%s_0" pos="0" freq="%s" friendlyPos="x" output="%s"%s>' % (
+                edge, edge, calibratorInterval, logfile, routeProbe), file=f)
             for time, aggInterval, flow, speed, quality, type in sorted(flowsteps):
                 if speed is None or speed > 120.:  # todo: set a filter if speed is very low especially at late night and if speed is very high > 100 except of highway
                     speed_attr = '' # disable speed calibration if speed is not known (see METriggeredCalibrator::execute())
@@ -56,9 +57,9 @@ def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterva
                 # and uses the static route distribution as fallback
                 flowElement = '        <flow begin="%s" end="%s" %s%svType="vtypedist" route="routedist_%s" force="%s" %s/>' % (
                         startSecond, startSecond + aggInterval, flow_attr, speed_attr, edge, force, comment)
-                print >> f, flowElement
-            print >> f, "    </calibrator>"
-        print >> f, "</add>"
+                print(flowElement, file=f)
+            print("    </calibrator>", file=f)
+        print("</add>", file=f)
 
 
 def generateCalibrators(directory, simBegin, forecastStart, simEnd, simOutputDir):
@@ -87,7 +88,7 @@ def generateCalibrators(directory, simBegin, forecastStart, simEnd, simOutputDir
             continue
         time = database.as_time(time)
         if flow is None and speed is None:
-            print >> sys.stderr, "Warning: ignoring invalid entry %s" % ((id, time, interval, flow, speed, quality, type),)
+            print("Warning: ignoring invalid entry %s" % ((id, time, interval, flow, speed, quality, type),), file=sys.stderr)
             continue
         time = as_time(time)
         if discardFutureMeasurements and type != 'extrapolation' and time > forecastStart:
@@ -101,7 +102,7 @@ def generateCalibrators(directory, simBegin, forecastStart, simEnd, simOutputDir
         covered_times[id].add(time)
         typeCounts[type] += 1
         trafficData[id].append((time, interval, flow, speed, quality, type))
-    print "Fetched %s entries for %s edges types=%s TEXTTEST_IGNORE" % (len(rows), len(trafficData), dict(typeCounts))
+    print("Fetched %s entries for %s edges types=%s TEXTTEST_IGNORE" % (len(rows), len(trafficData), dict(typeCounts)))
     conn.close()
     # write calibrators
     calibratorAdd = os.path.join(directory, "calibrators.add.xml")
@@ -119,7 +120,7 @@ def calculateInterval(begin, end, navteqTime):
     """
     match = re.match('\[\((\w*)\)\{(\w*)\}\]', navteqTime)
     if not match or len(match.groups()) < 2:
-        print >> sys.stderr, "Warning! Unsupported NavTeq time format %s." % navteqTime
+        print("Warning! Unsupported NavTeq time format %s." % navteqTime, file=sys.stderr)
         return None
     navteqBegin = match.group(1)
     parsedBegin = begin + timedelta(0)
@@ -211,7 +212,7 @@ def handleBlockings(directory, intervalBegin, intervalEnd, testBlockingRows = []
     numRerouters = 0
     additional = os.path.join(directory, "blockings.add.xml")
     with open(additional, 'w') as f:
-        print >> f, "<add>"
+        print("<add>", file=f)
         # add vaporizers on blocked edges
         for edge_id, validity_period in rows:
             interval = calculateInterval(intervalBegin, intervalEnd, validity_period)
@@ -220,12 +221,12 @@ def handleBlockings(directory, intervalBegin, intervalEnd, testBlockingRows = []
                 begin, end = interval
                 beginSecond = tools.daySecond(begin)
                 endSecond = tools.daySecond(end, beginSecond)
-                print >> f, '    <vaporizer id="%s" begin="%s" end="%s"/>'\
-                            % (edge_id_sim, beginSecond, endSecond)
+                print('    <vaporizer id="%s" begin="%s" end="%s"/>'\
+                            % (edge_id_sim, beginSecond, endSecond), file=f)
                 blockedSections[edge_id] = (beginSecond, endSecond, edge_id_sim)
 
         # put rerouters on edges leading to blocked sections
-        for edge_id, blocking in blockedSections.items():
+        for edge_id, blocking in list(blockedSections.items()):
             rows = database.execSQL(conn, 
                     """ SELECT %s FROM %s WHERE %s=%s""" % (
                         dbSchema.Tables.edge_connection.in_edge,
@@ -237,12 +238,12 @@ def handleBlockings(directory, intervalBegin, intervalEnd, testBlockingRows = []
             if len(rerouter_edges) > 0:
                 numRerouters += 1
                 edge_id_sim = reverseEdgeMap.get(edge_id, edge_id) # for 1-to-1 edge relation
-                print >> f, """    <rerouter id="rerouter_%s" edges="%s">
+                print("""    <rerouter id="rerouter_%s" edges="%s">
         <interval begin="%s" end="%s">
             <closingReroute id="%s"/>
         </interval>
-    </rerouter>""" % ((edge_id_sim, ' '.join(rerouter_edges)) + blocking)
+    </rerouter>""" % ((edge_id_sim, ' '.join(rerouter_edges)) + blocking), file=f)
 
-        print >> f, "</add>"
-    print "Blocked %s edges and placed %s rerouters." % (len(blockedSections), numRerouters)
+        print("</add>", file=f)
+    print("Blocked %s edges and placed %s rerouters." % (len(blockedSections), numRerouters))
     return [additional]

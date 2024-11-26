@@ -18,7 +18,8 @@ import os,sys
 import signal
 from subprocess import Popen, PIPE, STDOUT
 import optparse
-import tools
+
+from . import tools
 
 THIS_DIR = os.path.dirname(__file__)
 
@@ -55,14 +56,14 @@ def stop(process):
         try:
             os.kill(process.pid, signal.SIGSTOP)
         except OSError:
-            print "could not stop process %s. already finished" % process.pid
+            print("could not stop process %s. already finished" % process.pid)
 
 def resume(process):
     if process is not None:
         try:
             os.kill(process.pid, signal.SIGCONT)
         except OSError:
-            print "could not resume process %s. already finished" % process.pid
+            print("could not resume process %s. already finished" % process.pid)
 
 def main(args):
     options = get_options(args)
@@ -70,7 +71,7 @@ def main(args):
 
     if not options.log:
         options.log = os.path.join(options.region, "log_replay_loops")
-    outf = file(os.path.join(THIS_DIR, os.path.normpath(options.log)), "w")
+    outf = open(os.path.join(THIS_DIR, os.path.normpath(options.log)), "w")
     sys.stdout = tools.TeeFile(sys.__stdout__, outf)
 
     detCmd = [sys.executable, options.schema,
@@ -78,7 +79,7 @@ def main(args):
                 '--confFile', options.confFile,
                 '--type', 'detector']
     detProcess = Popen(detCmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    print "started detector process %s." % detProcess.pid
+    print("started detector process %s." % detProcess.pid)
     stop(detProcess)
 
     simCmd = [sys.executable, options.schema,
@@ -86,22 +87,22 @@ def main(args):
                 '--confFile', options.confFile,
                 '--type', 'simulation']
     simProcess = Popen(simCmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    print "started simulation process %s." % simProcess.pid
+    print("started simulation process %s." % simProcess.pid)
     stop(simProcess)
 
     while detProcess and simProcess:
         resume(detProcess)
         if read_until(detProcess, "Duration:") is None:
-            print "detector process finished"
+            print("detector process finished")
             detProcess = None
         stop(detProcess)
         resume(simProcess)
         if read_until(simProcess, "Duration:") is None:
-            print "simulation process finished"
+            print("simulation process finished")
             simProcess = None
         stop(simProcess)
 
-    print "finished replaying loops"
+    print("finished replaying loops")
 
 
 if __name__ == "__main__":

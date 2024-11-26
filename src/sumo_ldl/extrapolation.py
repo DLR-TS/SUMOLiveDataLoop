@@ -18,23 +18,24 @@ import os,sys
 import math
 from datetime import datetime, timedelta
 from collections import defaultdict
-import database
-import setting
-from setting import dbSchema
-from detector import DetectorReader
-from evalDetector import Data
-from aggregateData import insertAggregated
-from database import as_time
-from tools import geh, SAFE_ADD, SAFE_SUB, getIntervalEndsBetween
+
+from . import database
+from . import setting
+from .setting import dbSchema
+from .detector import DetectorReader
+from .evalDetector import Data
+from .aggregateData import insertAggregated
+from .database import as_time
+from .tools import geh, SAFE_ADD, SAFE_SUB, getIntervalEndsBetween
 
 IGNORE_REGION = True # extrapolate for all edges regardless of region
 TIME_OFFSETS = [timedelta(days=7), timedelta(days=14), timedelta(days=21)]
 SMOOTHING_WIDTH = 2 # symmetrical width of the smoothing range
-SMOOTHING_RANGE = range(-SMOOTHING_WIDTH, SMOOTHING_WIDTH + 1) # offsets around to target date for averaging
+SMOOTHING_RANGE = list(range(-SMOOTHING_WIDTH, SMOOTHING_WIDTH + 1)) # offsets around to target date for averaging
 VALIDATION_WIDTH = 3 # maximum number of datapoints to use for validating the extrapolation
-FLOW, SPEED = range(2)
+FLOW, SPEED = list(range(2))
 FEEDBACK_WIDTH = 2
-FEEDBACK_RANGE = range(-FEEDBACK_WIDTH,1) # compute correction based on the primaryPrediction of the last 3 known measurements
+FEEDBACK_RANGE = list(range(-FEEDBACK_WIDTH,1)) # compute correction based on the primaryPrediction of the last 3 known measurements
 # Debugging
 DEBUG = False
 EDGE_FILTER = ("" if not DEBUG else "and edge_id = 186390")
@@ -62,9 +63,9 @@ def get_correction(timeValues, knownTime, primaryPredictor):
     knownValue = timeValues.get(knownTime)
     if knownValue is not None:
         knownPred = primaryPredictor(timeValues, knownTime)
-        result = map(SAFE_SUB, knownValue, knownPred)
+        result = list(map(SAFE_SUB, knownValue, knownPred))
     if DEBUG:
-        print knownTime, 'correction:', result
+        print(knownTime, 'correction:', result)
     return result
 
 
@@ -109,7 +110,7 @@ def get_data_for_traffic_ids(conn, type, ids):
     regionFilter = None
     if not IGNORE_REGION:
         edgeMap = dbSchema.AggregateData.getSimulationEdgeMap(conn)
-        regionFilter = set([edgeMap[nId] for nId in edgeMap.iterkeys() if nId in setting.edges])
+        regionFilter = set([edgeMap[nId] for nId in edgeMap.keys() if nId in setting.edges])
         #regionFilterSql = 'and edge_id in (%s)' % ','.join(map(str,regionFilter))
     intervalTable, dataTable, q_column, v_column = dbSchema.AggregateData.getSchema(type)
     edge_id = "edge_id"
@@ -124,7 +125,7 @@ def get_data_for_traffic_ids(conn, type, ids):
                         q_column, v_column,
                         dataTable,
                         dbSchema.Tables.traffic.traffic_id,
-                        ','.join(map(str,ids.keys())), EDGE_FILTER)
+                        ','.join(map(str,list(ids.keys()))), EDGE_FILTER)
     #print 'command:\n', command
     rows =  database.execSQL(conn, command)
     num_used_values = 0
@@ -136,13 +137,13 @@ def get_data_for_traffic_ids(conn, type, ids):
             if v is not None:
                 v = float(v)
             result[edge][ids[id]] = (q,v)
-    print 'Fetched %s values and kept %s for %s edges TEXTTEST_IGNORE' % (len(rows), num_used_values, len(result))
+    print('Fetched %s values and kept %s for %s edges TEXTTEST_IGNORE' % (len(rows), num_used_values, len(result)))
     return result
 
 
 def predict_at_times(times, data, predictor):
     result = defaultdict(dict) # edge -> (time -> [q,v])
-    for edge in data.iterkeys():
+    for edge in data.keys():
         for time in times:
             result[edge][time] = predictor(data[edge], time)
     return result
@@ -155,7 +156,7 @@ def estimate_quality(lastKnown, data, intervalLength, predictor):
     # compare
     flowScale = 3600. / intervalLength.seconds
     result = {}
-    for edge in data.iterkeys():
+    for edge in data.keys():
         result[edge] = safe_avg(
                 [pred_quality_at_time(edge, time, data, predData, flowScale) for time in times],
                 default=-1) # allows numerical comparison when retrieving data
@@ -207,14 +208,14 @@ def main(start, end, intervalLength, sourceType):
     quality = estimate_quality(start, data, intervalLength, predictor)
     # write to DB
     detReader = DetectorReader()
-    for edge in predData.iterkeys():
+    for edge in predData.keys():
         detReader.addGroup(0, edge)
         detReader.addDetector(edge, 0, edge)
     qualitySum = 0
     writtenEntries = 0
     writtenEdges = set()
     for time in times:
-        for edge in predData.iterkeys():
+        for edge in predData.keys():
             flow, speed = predData[edge][time]
             if flow is not None or speed is not None:
                 qual = quality[edge]
@@ -225,6 +226,6 @@ def main(start, end, intervalLength, sourceType):
         #print "inserting values for time %s" % time
         insertAggregated(conn, "extrapolation", detReader, time, intervalLength)
     avgQuality = (qualitySum / writtenEntries if writtenEntries > 0 else None)
-    print 'Extrapolated %s data points for %s edges with average quality %s TEXTTEST_IGNORE' % (
-            writtenEntries, len(writtenEdges), avgQuality)
+    print('Extrapolated %s data points for %s edges with average quality %s TEXTTEST_IGNORE' % (
+            writtenEntries, len(writtenEdges), avgQuality))
     conn.close()

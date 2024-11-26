@@ -12,14 +12,14 @@
 Executes one simulation run including input generation and output parsing.
 Usually it is called from loop.py.
 """
-import os, sys, shutil, glob, pickle, subprocess, statvfs, re
+import os, sys, shutil, glob, pickle, subprocess, re
 from datetime import datetime, timedelta
 
-import generateSimulationInput, generateViewerInput, routeDistributions, aggregateData, generateEmissionOutput
-import setting, tools, database
-from setting import hasOption, getLoopOption, getOptionInt, getLoopOptionBool, getLoopOptionMinutes,\
+from . import generateSimulationInput, generateViewerInput, routeDistributions, aggregateData, generateEmissionOutput
+from . import setting, tools, database
+from .setting import hasOption, getLoopOption, getOptionInt, getLoopOptionBool, getLoopOptionMinutes,\
                     getOSDependentLoopOptionPath, getLoopOptionPathList, getDetectorOptionBool
-from step import systemStep, pythonStep
+from .step import systemStep, pythonStep
 
 STATE_FILE = "state.xml.gz"
 
@@ -35,13 +35,13 @@ def buildDirs(root, currTime, timeformat, repeat, simBegin):
     return checkDir, simInputDir, simOutputDir, statefile
 
 def onRemovalError(func, path, exc_info):
-    print >> sys.stderr, "Warning! Could not remove %s." % path
-    print >> sys.stderr, exc_info[1]
+    print("Warning! Could not remove %s." % path, file=sys.stderr)
+    print(exc_info[1], file=sys.stderr)
 
 def diskAvailable(path):
     if os.name == "posix":
         stats = os.statvfs(path)
-        return stats[statvfs.F_BSIZE] * stats[statvfs.F_BAVAIL]
+        return stats.f_bsize * stats.f_bavail
     if os.name == "nt":
         output = subprocess.Popen(["dir", path], stdout=subprocess.PIPE, shell=True).communicate()[0]
         bytes = re.findall('([0-9.,]*) [Bb]ytes', output.splitlines()[-1])[0]
@@ -52,14 +52,14 @@ def copyBackupClean(root, currTime, simOutputDir):
     for targetDir in getLoopOptionPathList("viewerData"):
         if not os.path.exists(targetDir):
             os.makedirs(targetDir)
-        print "locking", targetDir, 'TEXTTEST_IGNORE'
+        print("locking", targetDir, 'TEXTTEST_IGNORE')
         lock = open(os.path.join(targetDir, "lock.txt"), 'w')
-        print >> lock, currTime, 'TEXTTEST_IGNORE'
+        print(currTime, 'TEXTTEST_IGNORE', file=lock)
         lock.close()
         for f in ["simulation", "prediction", "compare"]:
-            print "copy", f, targetDir, 'TEXTTEST_IGNORE'
+            print("copy", f, targetDir, 'TEXTTEST_IGNORE')
             shutil.copyfile(os.path.join(simOutputDir, f + ".txt"), os.path.join(targetDir, f + mdate + ".txt"))
-        print "unlocking", targetDir, 'TEXTTEST_IGNORE'
+        print("unlocking", targetDir, 'TEXTTEST_IGNORE')
         os.remove(os.path.join(targetDir, "lock.txt"))
     # delete all files beyond the specified age
     for deldir in ["sim_outputs", "check", "sim_inputs"]:
@@ -73,8 +73,8 @@ def copyBackupClean(root, currTime, simOutputDir):
             try:
                 os.remove(f)
             except:
-                print >> sys.stderr, "Warning! Could not remove %s." % f
-                print >> sys.stderr, sys.exc_info()
+                print("Warning! Could not remove %s." % f, file=sys.stderr)
+                print(sys.exc_info(), file=sys.stderr)
         else:
             break
 
@@ -88,13 +88,13 @@ def prepare_dump_helper(type, i, aggregation, finalTime, simbegSec, simOutputDir
     begSec = tools.daySecond(beg, simbegSec)
     id = '%s%s' % (type, i)
     file = (os.path.join(simOutputDir, '%s.txt' % type) if i == 0 else None)
-    print >> fd, '    <edgeData id="%s" begin="%s" end="%s" file="%s" excludeEmpty="true" withInternal="%s"/>' % (   # only for huainan todo: check with the simulation performance if data from the internal links should be used.
-            id, begSec, endSec, dumpfile, withInternal)
+    print('    <edgeData id="%s" begin="%s" end="%s" file="%s" excludeEmpty="true" withInternal="%s"/>' % (   # only for huainan todo: check with the simulation performance if data from the internal links should be used.
+            id, begSec, endSec, dumpfile, withInternal), file=fd)
     dumpInterpretation[id] = (end, type, file)
     if emissionfile:
         file = (os.path.join(simOutputDir, 'emission_%s.txt' % type) if i == 0 else None)
-        print >> fd, '    <edgeData id="%s" begin="%s" end="%s" file="%s" type="emissions" excludeEmpty="true" withInternal="%s"/>' % (
-                id, begSec, endSec, emissionfile, withInternal)
+        print('    <edgeData id="%s" begin="%s" end="%s" file="%s" type="emissions" excludeEmpty="true" withInternal="%s"/>' % (
+                id, begSec, endSec, emissionfile, withInternal), file=fd)
         emissionInterpretation[id] = (end, type, file)
     
 
@@ -105,7 +105,7 @@ def prepare_dump(simInputDir, simOutputDir, simbegSec, startTime, simEnd, aggreg
     numDumpsSimulation, restSeconds = divmod(repeat.seconds, aggregation.seconds)
     numDumpsPrediction, restSeconds = divmod(forecast.seconds, aggregation.seconds)
     if restSeconds > 0:
-        print "Warning: Repeat is not a multiple of aggregation.  Aggregated_traffic and simulation_traffic will be out of sync."
+        print("Warning: Repeat is not a multiple of aggregation.  Aggregated_traffic and simulation_traffic will be out of sync.")
     dumpAdd =  'dump.add.xml'
     dumpfile = os.path.abspath(os.path.join(simOutputDir, 'dump_%s_%s.xml' % (
         startTime.strftime("%H-%M"), aggregation.seconds))) 
@@ -115,12 +115,12 @@ def prepare_dump(simInputDir, simOutputDir, simbegSec, startTime, simEnd, aggreg
         emissionfile = os.path.abspath(os.path.join(simOutputDir, 'emission_%s_%s.xml' % (
             startTime.strftime("%H-%M"), aggregation.seconds))) 
     with open(os.path.join(simInputDir, dumpAdd), "w") as fd:
-        print >> fd, "<a>"
+        print("<a>", file=fd)
         for i in range(numDumpsSimulation):
             prepare_dump_helper('simulation', i, aggregation, startTime, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, withInternal)
         for i in range(numDumpsPrediction):
             prepare_dump_helper('prediction', i, aggregation, simEnd, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, withInternal)
-        print >> fd, "</a>"
+        print("</a>", file=fd)
     return dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation
 
 def main(doStartEmpty, beginNewDay, loopDir, options):
@@ -138,7 +138,7 @@ def main(doStartEmpty, beginNewDay, loopDir, options):
     aggregation = getLoopOptionMinutes("aggregate")
     if doStartEmpty:
         if getLoopOptionMinutes("prefirst") < getLoopOptionMinutes("overlap"):
-            print "Warning! The first simulation run should have a larger advance."
+            print("Warning! The first simulation run should have a larger advance.")
         simBegin = setting.startTime - getLoopOptionMinutes("prefirst")
     else:
         simBegin = setting.startTime - getLoopOptionMinutes("overlap")
@@ -146,20 +146,20 @@ def main(doStartEmpty, beginNewDay, loopDir, options):
     forecastStart = setting.startTime
     simEnd = forecastStart + getLoopOptionMinutes("forecast")
     if saveStateTime < simBegin or saveStateTime >= simEnd:
-        print "Error! Either your forecast or your prefirst setting are too small for the repeat."
+        print("Error! Either your forecast or your prefirst setting are too small for the repeat.")
         return False
     routesPrefix = getLoopOptionPathList("routesprefix")
     if len(routesPrefix) != 7:
-        print "Warning! Number of route prefixes does not match number of weekdays (7)."
+        print("Warning! Number of route prefixes does not match number of weekdays (7).")
     if routesPrefix:
         while len(routesPrefix) < 7:
             routesPrefix.append(routesPrefix[-1])
     routeStep = getLoopOptionMinutes("routestep")
     beginTime = datetime.now()
-    print """%s
+    print("""%s
 Simulating %s to %s,
  starting at %s. TEXTTEST_IGNORE
-%s""" % ("-" * 77, simBegin, simEnd, beginTime, "- " * 39)
+%s""" % ("-" * 77, simBegin, simEnd, beginTime, "- " * 39))
 
     currTimeMin = setting.startTime.strftime("%H-%M")
     simbegSec = tools.daySecond(simBegin) 
@@ -174,12 +174,12 @@ Simulating %s to %s,
                             (os.path.join(root, scenario), setting.startTime, "%Y_%m_%d_%H-%M-%S",
                              repeat, simBegin))
     if resultDirs == None:
-        print "Warning! Building directories failed, retrying once."
+        print("Warning! Building directories failed, retrying once.")
         resultDirs = pythonStep("Building directories", buildDirs,
                                 (region, setting.startTime, "%Y_%m_%d_%H-%M-%S",
                                  repeat, simBegin, loopDir))
     if resultDirs == None:
-        print "Error! Building directories failed, exiting."
+        print("Error! Building directories failed, exiting.")
         return False
     checkDir, simInputDir, simOutputDir, statefile = resultDirs
     if not setting.edges:
@@ -191,19 +191,19 @@ Simulating %s to %s,
                       generateSimulationInput.generateCalibrators,
                       (simInputDir, simBegin, forecastStart, simEnd, simOutputDir), checkDir, currTimeMin)
     if resultGenerateCalibrators is None:
-        print "Error! Generation of calibrators failed, exiting"
+        print("Error! Generation of calibrators failed, exiting")
         return False
     else:
         adds, calibratorEdges = resultGenerateCalibrators
 
     if not doStartEmpty and not os.path.exists(statefile):
-        print "Warning! Could not find %s, starting empty." % statefile
+        print("Warning! Could not find %s, starting empty." % statefile)
         doStartEmpty = True
     if (not doStartEmpty 
             and hasOption("Loop", "clearState") 
             and getLoopOptionBool("clearState") 
             and simbegSec == 0):
-        print "'clearState=true': starting empty on new day."
+        print("'clearState=true': starting empty on new day.")
         doStartEmpty = True
     routeOutput = os.path.join(simInputDir, "static.rou.xml")
     adds = [routeOutput] + adds
@@ -252,24 +252,24 @@ Simulating %s to %s,
             dayOffset = 86400
 
     fd = open(os.path.join(simInputDir, 'pre.sumocfg'), "w")
-    print >> fd, """<configuration>
+    print("""<configuration>
     <input>
         <net-file value="%s"/>
         <route-files value="%s"/>
         <additional-files value="%s"/>""" % (getLoopOptionPathList("net")[0],
-                                             ",".join(routes), ",".join(adds))
+                                             ",".join(routes), ",".join(adds)), file=fd)
     if not doStartEmpty:
-        print >> fd, '<load-state value="%s"/>' % statefile
+        print('<load-state value="%s"/>' % statefile, file=fd)
         if simbegSec==0:
-            print >> fd, '<load-state.offset value="86400"/>'
-    print >> fd, """    </input>
+            print('<load-state.offset value="86400"/>', file=fd)
+    print("""    </input>
     <output>
         <save-state.files value="%s"/>
         <save-state.times value="%s"/>
     </output>""" % (os.path.join(simOutputDir, STATE_FILE),
-                    tools.daySecond(saveStateTime, simbegSec))
+                    tools.daySecond(saveStateTime, simbegSec)), file=fd)
 
-    print >> fd, """    <time>
+    print("""    <time>
         <begin value="%s"/>
         <end value="%s"/>
     </time>
@@ -281,7 +281,7 @@ Simulating %s to %s,
         <verbose value="true"/>
         <xml-validation value="never"/>
     </report>
-</configuration>""" % (simbegSec, tools.daySecond(simEnd, simbegSec))
+</configuration>""" % (simbegSec, tools.daySecond(simEnd, simbegSec)), file=fd)
     fd.close()
     sumoCfg = os.path.join(simInputDir, 'sumo.sumocfg')
     subprocess.call([getOSDependentLoopOptionPath("sumobinary"), '-c', fd.name, '-C', sumoCfg] + getLoopOption("sumoOptions").split())
@@ -314,11 +314,11 @@ Simulating %s to %s,
                                aggregateData.cleanUp, (before, ["simulation", "prediction"], True), checkDir, currTimeMin)
                 setting.lastCleanup = setting.startTime
     else:
-        print "Warning! Could not find %s, skipping the rest of the iteration." % dumpfile
+        print("Warning! Could not find %s, skipping the rest of the iteration." % dumpfile)
              
     endTime = datetime.now()
-    print """Simulation of %s to %s
+    print("""Simulation of %s to %s
  ended at %s. TEXTTEST_IGNORE
 Duration: %s TEXTTEST_IGNORE
-%s""" % (simBegin, simEnd, endTime, endTime - beginTime, "-" * 77)
+%s""" % (simBegin, simEnd, endTime, endTime - beginTime, "-" * 77))
     return True

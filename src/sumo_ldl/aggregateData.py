@@ -14,12 +14,12 @@ Used by correctDetector, fusion and generateViewerInput.
 """
 import sys, operator
 from datetime import datetime, timedelta
-
-import setting, database
-from detector import DetectorReader, MAX
-from database import as_time
 from collections import defaultdict
-from tools import reversedMap
+
+from . import setting, database
+from .detector import DetectorReader, MAX
+from .database import as_time
+from .tools import reversedMap
 
 
 def insertAggregated(conn, typeName, detReader, intervalEnd, intervalLength, isSimulation=False, 
@@ -79,7 +79,7 @@ def insertAggregated(conn, typeName, detReader, intervalEnd, intervalLength, isS
             groupCount += len(groups)
             values[edge] = (flowSum, speedSum, qualitySum, coverageSum, entryCount, groupCount)
     insertRows = []
-    for edge, (flowSum, speedSum, qualitySum, coverageSum, entryCount, groupCount) in values.items():
+    for edge, (flowSum, speedSum, qualitySum, coverageSum, entryCount, groupCount) in list(values.items()):
         if entryCount > 0:
         #    if edge == 7047:
         #        print('BEFORE INSERT', flowSum, speedSum, qualitySum, coverageSum, entryCount)
@@ -128,10 +128,10 @@ def insertAggregated(conn, typeName, detReader, intervalEnd, intervalLength, isS
     if len(insertRows) > 0:
         # update quality; XXX quality of remaining old entries is ignored
         if coverageSum is not None:
-            print("Updating %s edges in %s with average coverage of %.2f TEXTTEST_IGNORE" % (
+            print(("Updating %s edges in %s with average coverage of %.2f TEXTTEST_IGNORE" % (
                   len(insertRows),
                   AggregateData.update_description(dataTable, typeName),
-                  coverageSum / len(insertRows)))
+                  coverageSum / len(insertRows))))
         totalQuality /= len(insertRows)
         updateQualityQuery = "UPDATE %s SET quality = %s WHERE %s = %s" % (
                 intervalTable,
@@ -398,12 +398,12 @@ def generateComparison(outfile, time, types):
 
     # write data to file
     with open(outfile, 'w') as out:
-        print >> out, time.strftime("%Y%m%d%H%M%S")
+        print(time.strftime("%Y%m%d%H%M%S"), file=out)
         out.write("section-id")
         for type in types:
             out.write("\t%s-flow\t%s-speed" % (type, type))
         out.write("\n")
-        for key, value in data.iteritems():
+        for key, value in data.items():
             out.write(str(key))
             for type in types:
                 out.write("\t%s\t%s" % value.get(type, ("NULL", "NULL")))
@@ -439,7 +439,7 @@ def cleanUp(before, types, emission=False):
                 where
             )
             _, numDeletedItems = database.execSQL(conn, query, True, returnRowcount=True)
-        print("deleted %s items from %s" % (numDeletedItems, dataTable))
+        print(("deleted %s items from %s" % (numDeletedItems, dataTable)))
         _, numDeletedIntervals = database.execSQL(conn, """
             DELETE FROM %s %s""" % (intervalTable, where), True, returnRowcount=True)
-        print("deleted %s intervals of type %s" % (numDeletedIntervals, type))
+        print(("deleted %s intervals of type %s" % (numDeletedIntervals, type)))

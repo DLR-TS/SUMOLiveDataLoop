@@ -15,14 +15,15 @@ flows and speeds on detectors.
 Helper functions for parsing Elmar-detector files and database
 detectors.
 """
-from __future__ import print_function, division
+
 import os
 import sys, optparse, datetime
 from itertools import groupby
 import codecs
 from xml.sax import parse, handler, saxutils
-from tools import reversedMap
-import setting
+
+from .tools import reversedMap
+from . import setting
 
 MAX_POS_DEVIATION = 10
 
@@ -65,7 +66,7 @@ class Detector:
         self.interval = interval
         for a in Detector.OPTIONAL_FIELDS:
             setattr(self, a, None)
-        for a, value in attrs.items():
+        for a, value in list(attrs.items()):
             if a in Detector.OPTIONAL_FIELDS:
                 setattr(self, a, value)
             else:
@@ -186,7 +187,7 @@ class DetectorReader(handler.ContentHandler):
         print("""<?xml version="1.0" encoding="ISO-8859-1"?>
 <!-- generated on %s by $Id: detector.py 9186 2021-03-16 15:11:10Z wang_yu $ -->
 <a>""" % datetime.datetime.now(), file=file)
-        for edge in sorted(self._edge2DetData.keys(), key=str):
+        for edge in sorted(list(self._edge2DetData.keys()), key=str):
             for group in self._edge2DetData[edge]:
                 file.write('    <group pos="%s"' % group.pos)
                 if group.latitude:
@@ -233,7 +234,7 @@ class DetectorReader(handler.ContentHandler):
                 database.execSQL(conn, "SELECT setval('%s_induction_loop_id_seq', 1, false)" % dbSchema.Tables.induction_loop, True)
                 database.execSQL(conn, "SELECT setval('%s_induction_loop_group_id_seq', 1, false)" % dbSchema.Tables.induction_loop_group, True)
         edgeMap = dbSchema.AggregateData.getSimulationEdgeMap(conn)
-        for edge, groups in self._edge2DetData.items():
+        for edge, groups in list(self._edge2DetData.items()):
             if not edge in edgeMap:
                 print("Skipping detector for unknown edge %s" % edge, file=sys.stderr)
                 continue
@@ -372,7 +373,7 @@ class DetectorReader(handler.ContentHandler):
         """
         Iterator over pairs of edge and detector groups with associated data.
         """
-        return self._edge2DetData.items()
+        return list(self._edge2DetData.items())
     
     def hasIDs(self):
         """

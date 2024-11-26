@@ -14,11 +14,11 @@
 """
 Main entry point of the library for time triggered repeated tasks in the DSP simulation setup.
 """
-from __future__ import print_function
-import os, sys, traceback, optparse, time, urllib
+
+import os, sys, traceback, optparse, time, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timedelta
 
-import setting, tools
+from . import setting, tools
 
 # loop to to config section
 TYPE2SECTION = {
@@ -67,11 +67,11 @@ def _init(dbSchema, loopDir):
     
     # type of loop mode
     if options.typeOfLoop == "detector":
-        import correctDetector
+        from . import correctDetector
         mainFunc = correctDetector.main
         repeatTime = setting.getDetectorOptionMinutes("repeat")
     else:
-        import simulationRun
+        from . import simulationRun
         mainFunc = simulationRun.main
         repeatTime = setting.getLoopOptionMinutes("repeat")
 
@@ -92,7 +92,7 @@ def _init(dbSchema, loopDir):
     dirName = os.path.join(loopDir, os.path.dirname(options.log))
     if dirName != '' and not os.path.exists(dirName):
         os.makedirs(dirName)
-    outf = file(os.path.join(loopDir, os.path.normpath(options.log)), "w")
+    outf = open(os.path.join(loopDir, os.path.normpath(options.log)), "w")
     sys.stdout = tools.TeeFile(sys.__stdout__, outf)
     print("Log file: %s TEXTTEST_IGNORE" % options.log)
     
@@ -187,7 +187,7 @@ def sendMessageToPsm(messageString, loopType):
             urlstring += messageString.replace(" ", "%20")
             urlstring += "&ts=" + timestring
             try:
-                urllib.urlopen(urlstring)
+                urllib.request.urlopen(urlstring)
             except:
                 print("Problem output to PSM:")
                 traceback.print_exc(file=sys.stdout)

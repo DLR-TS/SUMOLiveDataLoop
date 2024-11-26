@@ -14,9 +14,10 @@ Evaluate errors in detector data.
 """
 
 from datetime import datetime
-import database
-from setting import dbSchema
 import time
+
+from . import database
+from .setting import dbSchema
 
 MAX_FLOW = 2500
 MAX_SPEED = {
@@ -253,9 +254,9 @@ class Data:
         """Calculates the quality of the item as an integer between 0 and 100."""
         quality = 0
         if (hasLKW):
-            qualIter = _ATTRIBUTE_QUALITY.iteritems()
+            qualIter = iter(_ATTRIBUTE_QUALITY.items())
         else:
-            qualIter = _ATTRIBUTE_QUALITY_NO_LKW.iteritems()
+            qualIter = iter(_ATTRIBUTE_QUALITY_NO_LKW.items())
         for attr, maxQuality in qualIter:
             if attr == "Date":
                 if date == self.origDate:

@@ -14,13 +14,13 @@ edges and writes the results to the DB. Usually it is called from *.py.
 """
 import os, sys, datetime
 from xml.sax import make_parser, handler
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 from optparse import OptionParser
 
-from detector import DetectorReader
-from aggregateData import insertAggregated
-import setting
-import database
+from .detector import DetectorReader
+from .aggregateData import insertAggregated
+from . import setting
+from . import database
 
 class EmissionReader(handler.ContentHandler):
     """ContentHandler for parsing SUMO emission outputs.
@@ -34,7 +34,7 @@ class EmissionReader(handler.ContentHandler):
         self._activeID = None # the dumpId of the currently parsed interval
         self._aggregation = None # the length of the currently parsed interval in seconds
         if emissionInterpretation:
-            for id, (time, traffic_type, filename) in emissionInterpretation.items():
+            for id, (time, traffic_type, filename) in list(emissionInterpretation.items()):
                 self._detReader[id] = []
         parser = make_parser()
         parser.setContentHandler(self)
@@ -44,7 +44,7 @@ class EmissionReader(handler.ContentHandler):
         if intervalLength is None:
             intervalLength = datetime.timedelta(seconds=self._aggregation)
         if self._emissionInterpretation:
-            for id, (time, trafficType, filename) in self._emissionInterpretation.items():
+            for id, (time, trafficType, filename) in list(self._emissionInterpretation.items()):
                 insertEmission(None, trafficType, self._detReader[id], time, intervalLength)
 
 
@@ -58,7 +58,7 @@ class EmissionReader(handler.ContentHandler):
             if id in self._emissionInterpretation:
                 self._activeID = id
             else:
-                print >> sys.stderr, "WARNING: found unknown emission data interval '%s'" % id
+                print("WARNING: found unknown emission data interval '%s'" % id, file=sys.stderr)
             self._aggregation = end - start
         elif name == 'edge' and self._activeID != None:
             edge = attrs['id']
@@ -119,7 +119,7 @@ def insertEmission(conn, typeName, detReader, intervalEnd, intervalLength):
             entryCount += 1
             values[database_id] = (NOx, CO, PMx, HC, CO2, entryCount)
     insertRows = []
-    for edge, (NOx, CO, PMx, HC, CO2, entryCount) in values.items():
+    for edge, (NOx, CO, PMx, HC, CO2, entryCount) in list(values.items()):
         if entryCount > 0:
             insertRows.append((trafficIndex, edge, NOx, CO, PMx, HC, CO2, None))
     # perform DB write

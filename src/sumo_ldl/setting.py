@@ -12,10 +12,7 @@
 Configuration interface for the Delphi simulation setup.
 """
 import os,sys
-try:
-    from ConfigParser import SafeConfigParser, NoOptionError
-except ImportError:
-    from configparser import SafeConfigParser, NoOptionError
+from configparser import SafeConfigParser, NoOptionError
 from datetime import datetime, timedelta
 
 THIS_DIR = os.path.dirname(__file__)

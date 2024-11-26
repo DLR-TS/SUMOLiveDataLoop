@@ -14,12 +14,12 @@ Helper functions for single steps in detector and simulation loop.
 import os, sys, tempfile, traceback
 from datetime import datetime, timedelta
 
-import setting, tools, database
-from setting import dbSchema
+from . import setting, tools, database
+from .setting import dbSchema
 
 def _checkOutput(lastTime, stdoutFile=None, stderrFile=None):
     """Parses the output files of a step for warnings etc. and outputs the total time."""
-    print "step#%s" % setting.step,
+    print("step#%s" % setting.step, end=' ')
     errorCount = 0
     warningCount = 0
     sizeSum = 0
@@ -36,20 +36,20 @@ def _checkOutput(lastTime, stdoutFile=None, stderrFile=None):
                 if line.find("ok") > -1 or line.find("simulation ended at time") > -1:
                     hadOK = True
     if errorCount > 0:
-        print "had errors,"
+        print("had errors,")
     elif warningCount > 0:
-        print "had warnings,"
+        print("had warnings,")
     elif stderrFile and os.path.getsize(stderrFile) > 0:
-        print "had non-empty stderr,"
+        print("had non-empty stderr,")
     elif hadOK or sizeSum == 0:
-        print "ok,"
+        print("ok,")
     else:
-        print "unknown status,"
+        print("unknown status,")
     totalTime = datetime.now() - lastTime
-    print "...needed %s (%s)" % (totalTime, setting.databaseTime), 'TEXTTEST_IGNORE'
+    print("...needed %s (%s)" % (totalTime, setting.databaseTime), 'TEXTTEST_IGNORE')
     setting.databaseTime = timedelta(0)
     setting.step += 1
-    print "- " * 39
+    print("- " * 39)
 
 def systemStep(comment, command, checkDir, suffix):
     """Executes a step which involves an os.system call."""
@@ -59,18 +59,18 @@ def systemStep(comment, command, checkDir, suffix):
         exe = exe[:-4]
     checkOut = os.path.join(checkDir, "%02i%s_%s.txt" % (setting.step, exe, suffix))
     checkErr = os.path.join(checkDir, "%02i%sError_%s.txt" % (setting.step, exe, suffix))
-    print "step#%s" % setting.step
-    print " (%s)" % comment
-    print " Call:", command, 'TEXTTEST_IGNORE'
-    print " redirecting stdout to %s and stderr to %s" % (checkOut, checkErr), 'TEXTTEST_IGNORE'
+    print("step#%s" % setting.step)
+    print(" (%s)" % comment)
+    print(" Call:", command, 'TEXTTEST_IGNORE')
+    print(" redirecting stdout to %s and stderr to %s" % (checkOut, checkErr), 'TEXTTEST_IGNORE')
     os.system(command + " > %s 2> %s" % (checkOut, checkErr))
     _checkOutput(lastTime, checkOut, checkErr), 'TEXTTEST_IGNORE'
 
 def pythonStep(comment, function, args, checkDir=None, suffix=None):
     """Executes a step which is a python function call."""
     lastTime = datetime.now()
-    print "step#%s" % setting.step
-    print " (%s)" % comment
+    print("step#%s" % setting.step)
+    print(" (%s)" % comment)
     checkErr = None
     temp = None
     if checkDir:
@@ -83,9 +83,9 @@ def pythonStep(comment, function, args, checkDir=None, suffix=None):
         sys.stderr = tools.TeeFile(sys.stdout, temp)
     result = None
     try:
-        print " Call: %s%s" % (function.__name__, args), 'TEXTTEST_IGNORE'
+        print(" Call: %s%s" % (function.__name__, args), 'TEXTTEST_IGNORE')
         if not temp:
-            print " redirecting stderr to %s" % checkErr, 'TEXTTEST_IGNORE'
+            print(" redirecting stderr to %s" % checkErr, 'TEXTTEST_IGNORE')
         result = function(*args)
         if temp:
             temp.close()
@@ -93,15 +93,15 @@ def pythonStep(comment, function, args, checkDir=None, suffix=None):
             sys.stderr.close()
     except KeyboardInterrupt:
         if temp:
-            print "Interrupted! Temporary output file left at %s." % checkErr
+            print("Interrupted! Temporary output file left at %s." % checkErr)
         else:
-            print "Interrupted!"
+            print("Interrupted!")
         raise
     except:
         if temp:
-            print "Exception caught! Temporary output file left at %s." % checkErr
+            print("Exception caught! Temporary output file left at %s." % checkErr)
         else:
-            print "Exception caught!"
+            print("Exception caught!")
         traceback.print_exc()
         setting.errorOnLastRun = True
     _checkOutput(lastTime, stderrFile=checkErr)
@@ -109,7 +109,7 @@ def pythonStep(comment, function, args, checkDir=None, suffix=None):
         if temp:
             os.remove(temp.name)
     except:
-        print "Error cleaning temp! Temporary output file left at %s." % checkErr
+        print("Error cleaning temp! Temporary output file left at %s." % checkErr)
         traceback.print_exc()
     sys.stderr = sys.__stderr__
     return result

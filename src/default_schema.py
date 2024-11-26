@@ -15,12 +15,9 @@
 Schema file for use with sumoldl
 """
 import os, sys
-import pickle
-THIS_DIR = os.path.dirname(__file__)
-sys.path.append(os.path.join(THIS_DIR, 'dsp'))
-from tools import Table, noneToNull, SAFE_DIV, reversedMap
-from main import main
-import database
+from sumo_ldl.tools import Table, noneToNull, SAFE_DIV, reversedMap
+from sumo_ldl.main import main
+from sumo_ldl import database
 
 name = "AIM"
 #SEARCH_PATH_SUFFIX = 'tdp_navteq_2013q1'
