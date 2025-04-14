@@ -62,11 +62,11 @@ class EmissionReader(handler.ContentHandler):
             self._aggregation = end - start
         elif name == 'edge' and self._activeID != None:
             edge = attrs['id']
-            NOx = float(attrs['NOx_abs'])
-            CO = float(attrs['CO_abs'])
-            PMx = float(attrs['PMx_abs'])
-            HC = float(attrs['HC_abs'])
-            CO2 = float(attrs['CO2_abs'])
+            NOx = float(attrs['NOx_normed'])
+            CO = float(attrs['CO_normed'])
+            PMx = float(attrs['PMx_normed'])
+            HC = float(attrs['HC_normed'])
+            CO2 = float(attrs['CO2_normed'])
 
             valueCollection = self._detReader[self._activeID]
             valueCollection.append((edge, (NOx, CO, PMx, HC, CO2)))
