@@ -1,23 +1,26 @@
-# SUMO Live Data Loop
-# Copyright (C) 2007-2024 German Aerospace Center (DLR) and others.
-# This program and the accompanying materials are made available under the
-# terms of the Eclipse Public License 2.0 which is available at
-# https://www.eclipse.org/legal/epl-2.0/
-# SPDX-License-Identifier: EPL-2.0
-
-# @file    database.py
-# @author  Michael Behrisch
-# @date    2010-01-29
 """
+@file    database.py
+@author  Michael.Behrisch@dlr.de
+@date    2010-01-29
+@version $Id: database.py 10313 2025-04-14 10:22:08Z wang_yu $
+
 Database interface for the Delphi simulation setup.
-"""
 
+Copyright (C) 2010 DLR/TS, Germany
+All rights reserved
+"""
+from __future__ import print_function
 import sys, traceback
 from datetime import datetime, timedelta
 
-import psycopg2
+import setting
 
-from . import setting
+try:
+    import psycopg2 as pgdb
+    from psycopg2.extras import execute_batch
+except ImportError:
+    import pgdb
+    print("Warning! You are using the outdated pgdb driver, please install psycopg2.", file=sys.stderr)
 
 try:
     import cx_Oracle
@@ -26,7 +29,7 @@ except ImportError:
     haveOracle = False
     print("Warning! Oracle client is not available.", file=sys.stderr)
 
-OperationalError = psycopg2.OperationalError
+OperationalError = pgdb.OperationalError
 
 VERBOSE = False
 
@@ -35,7 +38,7 @@ def createDatabaseConnection(prefix="", dbPrefix=""):
         return setting.getOption("Database", "testinput")
 
     if not haveOracle or (setting.hasOption("Database", "postgres") and setting.getOptionBool("Database", "postgres")):
-        conn = psycopg2.connect(host = setting.getOption("Database", prefix + "host"),
+        conn = pgdb.connect(host = setting.getOption("Database", prefix + "host"),
                             user = setting.getOption("Database", prefix + "user"),
                             password = setting.getOption("Database", prefix + "passwd"),
                             database = setting.getOption("Database", dbPrefix + "db"))
@@ -81,6 +84,7 @@ def execSQL(conn, commands, doCommit=False, manySet=None, fetchId=False,
                 if manySet is not None:
                     debug_print(str(manySet[:10]))
                     execute_batch(cursor, command, manySet)
+#                    cursor.executemany(command, manySet)
                 else:
                     cursor.execute(command)
         except OperationalError as message:
