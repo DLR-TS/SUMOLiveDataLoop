@@ -151,7 +151,7 @@ def aggregateDetector(start, end, intervalLength, updateInterval):
     conn = database.createDatabaseConnection()
     detReader = DetectorReader()
     # init groups
-    if setting.dbSchema.Loop.region_choices[0] == "huainan":
+    if setting.dbSchema.Loop.region_choices[0] in ("huainan", "leipzig"):
         rows = database.execSQL(conn, """
             SELECT i.%s, i.%s, e.%s, e.%s
             FROM %s i, %s g, %s e
@@ -207,7 +207,7 @@ def aggregateDetector(start, end, intervalLength, updateInterval):
         AND data_time > %s '%s' 
         AND data_time <= %s '%s' 
         AND quality > 0
-        ORDER BY data_time, sensor_id""" % (
+        ORDER BY data_time, %s""" % (
             Tables.corrected_loop_data.induction_loop_id,
             Tables.corrected_loop_data,
             Tables.induction_loop,
@@ -216,7 +216,8 @@ def aggregateDetector(start, end, intervalLength, updateInterval):
             Tables.induction_loop.loop_interval,
             updateInterval.seconds,
             setting.dbSchema.AggregateData.getTimeStampLabel(), start,
-            setting.dbSchema.AggregateData.getTimeStampLabel(), end))
+            setting.dbSchema.AggregateData.getTimeStampLabel(), end,
+            Tables.corrected_loop_data.induction_loop_id))
     # bind some variables used during insertion
     flowFactor = 3600 / intervalLength.seconds
     ## declare the minimum number of expected vehicles for maximum quality 
@@ -246,7 +247,10 @@ def aggregateDetector(start, end, intervalLength, updateInterval):
             # both flows apply to the same time interval so rowCoverage only
             # needs to be incremented once
             if setting.getDetectorOptionBool("haslkw") and qLKW > 0:
-                vPKW = (vPKW * qPKW + vLKW * qLKW) / (qPKW + qLKW)
+                if qPKW > 0 and vPKW is not None and vLKW is not None:
+                    vPKW = (vPKW * qPKW + vLKW * qLKW) / (qPKW + qLKW)
+                else:
+                    vPKW = vLKW
                 qPKW += qLKW
         #    if det.startswith("SP0078-"):
         #        print(det, qPKW, vPKW, quality)
