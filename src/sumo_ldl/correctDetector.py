@@ -48,7 +48,6 @@ else:
     benchmark = lambda x:x 
     DETECTOR_FILTER = ""
 
-
 class DataWindow:
     """ Helper class holding values which are saved between multiple iterations with a fixed update interval.
     The class holds data for a time window which moves forward over time.
@@ -71,16 +70,16 @@ class DataWindow:
         # see dateToIndex()
         self.data = {} 
         self.previousEvaluation = None
-        # get and save all detector ids for given detector type     #yp
-#        if os.path.isfile(conn):        # changes needed for test: check if conn is a file or a databank#
-#            rows = csv.reader(open(conn))
-#        else:
+        ACTIVE_DETECTOR_FILTER = DETECTOR_FILTER
+        if dbSchema.Loop.region_choices[0] == "leipzig":
+            ACTIVE_DETECTOR_FILTER= "AND i.id IN (SELECT distinct det_id FROM %s)" % dbSchema.Tables.induction_loop_data
+
         rows = database.execSQL(conn, "SELECT %s FROM %s i WHERE i.%s = %s %s" % (     
             dbSchema.Tables.induction_loop.induction_loop_id,
             dbSchema.Tables.induction_loop,
             dbSchema.Tables.induction_loop.loop_interval,
             updateInterval.seconds, 
-            DETECTOR_FILTER))
+            ACTIVE_DETECTOR_FILTER))
         for row in rows:
             self.data[row[0]] = []
 
@@ -526,50 +525,6 @@ def storeOrigData(conn, correctStart, updateInterval):
 
 
 @benchmark
-def get_measurements_for_interval(conn, correctStart, correctEnd, updateInterval):
-    #if os.path.isfile(conn):
-    #    
-    # get all detector values which are of the given type and in time interval
-#   selectPara = "d.q_kfz, d.q_lkw, d.v_pkw, d.v_lkw, street_type"
-    selectPara = "d.%s, d.%s, d.%s, d.%s, %s" %(
-                dbSchema.Tables.induction_loop_data.q_kfz,
-                dbSchema.Tables.induction_loop_data.q_lkw,
-                dbSchema.Tables.induction_loop_data.v_pkw,
-                dbSchema.Tables.induction_loop_data.v_lkw,
-                dbSchema.Tables.induction_loop_group.street_type)
-    if dbSchema.Loop.region_choices[0] == "leipzig":
-        selectPara = "d.q_car + d.q_truck, d.q_truck, d.s_car, d.s_truck, NULL"
-
-    if dbSchema.Loop.region_choices[0] == "huainan":
-        selectPara = "d.q_motor_vehicle, 0, d.s_motor_vehicle, 0, NULL"
-    command = """SELECT d.%s, d.%s, d.data_time, %s 
-        FROM %s d, %s i, %s g WHERE d.%s = i.%s 
-        AND i.%s = g.%s
-        AND i.%s = %s
-        AND d.data_time >= %s '%s' 
-        AND d.data_time < %s '%s'
-        %s
-        ORDER BY d.%s """ % (
-                dbSchema.Tables.induction_loop_data.induction_loop_data_id,
-                dbSchema.Tables.induction_loop_data.induction_loop_id,
-                selectPara,
-                dbSchema.Tables.induction_loop_data,
-                dbSchema.Tables.induction_loop,
-                dbSchema.Tables.induction_loop_group,
-                dbSchema.Tables.induction_loop_data.induction_loop_id,
-                dbSchema.Tables.induction_loop.induction_loop_id,
-                dbSchema.Tables.induction_loop.induction_loop_group_id,
-                dbSchema.Tables.induction_loop_group.induction_loop_group_id,
-                dbSchema.Tables.induction_loop.loop_interval,
-                updateInterval.seconds,
-                setting.dbSchema.AggregateData.getTimeStampLabel(), correctStart,
-                setting.dbSchema.AggregateData.getTimeStampLabel(), correctEnd,
-                DETECTOR_FILTER,
-                dbSchema.Tables.induction_loop_data.induction_loop_data_id)
-    return database.execSQL(conn, command)
-
-
-@benchmark
 def identify_errors(rows, checkDoubling, hasLkw):
     """Check for typical data errors and remove erroneous values. This creates
     gaps. Return the number of errors found for each attribute."""
@@ -734,7 +689,7 @@ def correctDetector(isFirst, correctStart, correctEnd, forecastEnd,
     if isFirst:
         load_previous_corrections(conn, newZeroTime, correctStart, updateInterval)  # changes needed for tests
     # get new raw data
-    rows = get_measurements_for_interval(conn, correctStart, correctEnd, updateInterval)  #  changes needed for tests
+    rows = dbSchema.CorrectDetector.get_measurements_for_interval(conn, correctStart, correctEnd, updateInterval, DETECTOR_FILTER)  #  changes needed for tests
     if not rows and getDetectorOptionBool("historic"):
         if not _GLOBALS.has_more_data_after(conn, correctEnd):
             conn.close()
@@ -828,7 +783,7 @@ Data correction and aggregation from %s to %s
     setting.errorOnLastRun = False
     # 1. Correcting detector data
     #if options.do_correction and setting.updateIntervals:
-    if getDetectorOptionBool("doDetectorCorrection") and setting.updateIntervals:  #yp
+    if getDetectorOptionBool("doDetectorCorrection") and setting.updateIntervals:
         for updateInterval in setting.updateIntervals:
             result = pythonStep("Correcting detector data with updateInterval %s" % updateInterval, correctDetector,
                     (isFirst, correctStart, correctEnd, loopRawForecastEnd,
@@ -837,10 +792,16 @@ Data correction and aggregation from %s to %s
     else:
         result = True
     # 2. Aggregating detector data
-    if getDetectorOptionBool("doDetectorAggregation") and setting.updateIntervals:  #yp
+    if getDetectorOptionBool("doDetectorAggregation") and setting.updateIntervals:
         for updateInterval in setting.updateIntervals:
             pythonStep("Aggregating detector data with updateInterval %s" % updateInterval, aggregateData.aggregateDetector,
                     (aggStart, aggEnd, aggregate, updateInterval))
+    ## 2-1. filling data gap with use of historic data
+    #if getDetectorOptionBool("fillDataGap"):
+    #    sourceType = 'loop' # ther is no 'fusion' yet
+    #    pythonStep("Data extrapolation to fill data gaps", extrapolation.main,
+    #               (correctStart, correctEnd, aggregate, sourceType, True))
+    #
     # 3. Aggregating FCD
     aggregateFCD = getDetectorOptionMinutes("aggregateFCD")
     if aggregateFCD > timedelta(0):
