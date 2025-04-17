@@ -7,9 +7,9 @@
 # SPDX-License-Identifier: EPL-2.0
 
 # @file    default_schema.py
-# @author  Jakob Erdmann
-# @author  Michael Behrisch
-# @date    2013-04-18
+# @author  Yun-Pang Floetteroed(yun-pang.floetteroed@dlr.de)
+# @author  Michael Behrisch(michael.behrisch@dlr.de)
+# @date    2024-11-15
 
 """
 Schema file for use with sumo_ldl
@@ -87,6 +87,13 @@ class Tables:
             in_edge='edge_id_in',
             out_edge='edge_id_out')
 
+    simulation_emission = Table('tdp_leipzig_sumo2024q2.sumo_emission_interval',
+            traffic_id='interval_id',
+            traffic_time='interval_end_time')
+
+    prediction_emission = Table('tdp_leipzig_sumo2024q2.sumo_emission_pred_interval',
+            traffic_id='interval_id',
+            traffic_time='interval_end_time')
 class CorrectDetector:
     corrected_columns = ','.join([
         Tables.corrected_loop_data.original_data_id,
@@ -95,11 +102,47 @@ class CorrectDetector:
         'data_time', 'q_pkw', 'q_lkw', 'v_pkw', 'v_lkw', 'quality'])
 
     enableVisual = False
+    @staticmethod
+    def get_measurements_for_interval(conn, correctStart, correctEnd, updateInterval, detector_filter=""):
 
+        # get all detector values which are of the given type and in time interval
+    #   selectPara = "d.q_kfz, d.q_lkw, d.v_pkw, d.v_lkw, street_type"
+        selectPara = "d.%s, d.%s, d.%s, d.%s, %s" %(
+                    Tables.induction_loop_data.q_kfz,
+                    Tables.induction_loop_data.q_lkw,
+                    Tables.induction_loop_data.v_pkw,
+                    Tables.induction_loop_data.v_lkw,
+                    Tables.induction_loop_group.street_type)
+        selectPara = "d.q_car/12 + d.q_truck/12, d.q_truck/12, d.s_car, d.s_truck, NULL"
 
+        command = """SELECT d.%s, d.%s, d.data_time, %s 
+            FROM %s d, %s i, %s g WHERE d.%s = i.%s 
+            AND i.%s = g.%s
+            AND i.%s = %s
+            AND d.data_time >= %s '%s' 
+            AND d.data_time < %s '%s'
+            %s
+            ORDER BY d.%s """ % (
+                    Tables.induction_loop_data.induction_loop_data_id,
+                    Tables.induction_loop_data.induction_loop_id,
+                    selectPara,
+                    Tables.induction_loop_data,
+                    Tables.induction_loop,
+                    Tables.induction_loop_group,
+                    Tables.induction_loop_data.induction_loop_id,
+                    Tables.induction_loop.induction_loop_id,
+                    Tables.induction_loop.induction_loop_group_id,
+                    Tables.induction_loop_group.induction_loop_group_id,
+                    Tables.induction_loop.loop_interval,
+                    updateInterval.seconds,
+                    AggregateData.getTimeStampLabel(), correctStart,
+                    AggregateData.getTimeStampLabel(), correctEnd,
+                    detector_filter,
+                    Tables.induction_loop_data.induction_loop_data_id)
+        return database.execSQL(conn, command)
 class EvalDetector:
     # speed_value_in_db * kmhMultiplier = speed_in_kmh
-    kmhMultiplier = 1.0 # dbSpeeds are in km/h already
+    kmhMultiplier = 1.0 # 1: speeds in DB are in km/h; 3.6: speeds in DB are in m/s
 
 
     @staticmethod
@@ -145,6 +188,12 @@ class AggregateData:
                 'tdp_simulation_prediction_history', 'q', 'v'),
             }
 
+    TYPE2EMISSIONSCHEME = {
+            'simulation': (Tables.simulation_emission, 
+                'tdp_leipzig_sumo2024q2.sumo_emission_history', 'nox_normed, co_normed, pmx_normed, hc_normed, co2_normed'),
+            'prediction': (Tables.prediction_emission, 
+                'tdp_leipzig_sumo2024q2.sumo_emission_pred_history', 'nox_normed, co_normed, pmx_normed, hc_normed, co2_normed'),
+            }
     @staticmethod
     def getSchema(typeName):
         return AggregateData.TYPE2SCHEME[typeName]
@@ -170,8 +219,8 @@ class AggregateData:
 
 
     @staticmethod
-    def getIntervalID(conn, typeName, intervalEnd, intervalLength):
-        """retrieve id of an existing interval or insert a new one an return it's id"""
+    def getIntervalID(conn, typeName, intervalEnd, intervalLength, emissionTable = False):
+        """retrieve id of an existing interval or insert a new one and return it's id"""
         intervalTable = AggregateData.getSchema(typeName)[0]
         indexRow = database.execSQL(conn, """
                 SELECT %s FROM %s WHERE %s='%s'""" % (
@@ -190,7 +239,55 @@ class AggregateData:
             row = database.execSQL(conn, [trafficInsert], doCommit=True, fetchId=True)
             return row[0] # only a single row due to fetchone()
 
+    @staticmethod
+    def insertData(conn, typeName, values):
+        if len(values) == 0:
+            return
+        intervalTable, dataTable, q_column, v_column = AggregateData.getSchema(typeName)
+        database.execSQL(conn, "DELETE FROM %s WHERE %s = %s"  % (dataTable, intervalTable.traffic_id, values[0][0]))
+        command = "INSERT INTO %s(%s, edge_id, %s, %s, quality) VALUES(%s)" % (
+                  dataTable, intervalTable.traffic_id, q_column, v_column,
+                  ", ".join(["%s"] * len(values[0])))
+        database.execSQL(conn, [command], doCommit=True, manySet=values)
 
+    @staticmethod
+    def getEmissionSchema(typeName):
+        return AggregateData.TYPE2EMISSIONSCHEME[typeName]
+
+    @staticmethod
+    def insertEmissionData(conn, typeName, values):
+        if len(values) == 0:
+            return
+        intervalTable, dataTable, emissionColumns = AggregateData.getEmissionSchema(typeName)
+        database.execSQL(conn, "DELETE FROM %s WHERE %s = %s"  % (dataTable, intervalTable.traffic_id, values[0][0]))
+        command = "INSERT INTO %s(%s, edge_id, %s, quality) VALUES(%s)" % (
+                  dataTable, intervalTable.traffic_id, emissionColumns,
+                  ", ".join(["%s"] * len(values[0])))
+        database.execSQL(conn, [command], doCommit=True, manySet=values)
+
+    @staticmethod
+    def getComparisonData(conn, typeName, time):
+        intervalTable, dataTable, q_column, v_column = AggregateData.getSchema(typeName)
+        edge_column = "edge_id"
+        rows = database.execSQL(conn, """
+            SELECT %s, %s, %s
+            FROM %s t, %s a
+            WHERE t.%s = a.%s AND %s = %s '%s' %s""" % (
+                      edge_column, q_column, v_column,
+                      intervalTable, dataTable,
+                      intervalTable.traffic_id,
+                      Tables.traffic.traffic_id,
+                      intervalTable.traffic_time,
+                      AggregateData.getTimeStampLabel(),
+                      time,
+                      Extrapolation.getTypePredicate(typeName)))
+        return rows
+
+    @staticmethod
+    def getTimeStampLabel():
+        return "TIMESTAMP"
+        
+    
 class Extrapolation:
     @staticmethod
     def getTypePredicate(typeName):
@@ -239,7 +336,7 @@ class GenerateSimulationInput:
 
     @staticmethod
     def getTypedTrafficValues(conn, types, begin, end, qualityThreshold, intervalLength, timeline):
-        """return rows of [edge_id, time, interval_length, flow, speed_m_per_s, quality, type]"""
+        """return rows of [edge_id, time, interval_length, flow_per_hour, speed_km_per_h, quality, type]"""
         if timeline: 
             raise Exception("timeline not support for dbSchema '%s'" % __file__)
         result = []
@@ -257,14 +354,15 @@ class GenerateSimulationInput:
                 """ % (Tables.traffic.traffic_time,
                         q_column, v_column,
                         intervalTable, dataTable,
-                        Tables.traffic.traffic_id, Tables.traffic.traffic_id,
+                        Tables.traffic.traffic_id,
+                        Tables.traffic.traffic_id,
                         Tables.traffic.traffic_time, begin, 
                         Tables.traffic.traffic_time, end, 
                         qualityThreshold,
                         Tables.traffic.traffic_time)
             #print query
             rows = database.execSQL(conn, query)
-            result += [(reverseEdgeMap.get(e), t, intervalLength, q, SAFE_DIV(v, 3.6), qual, type) for e,t,q,v,qual in rows]
+            result += [(reverseEdgeMap.get(e), t, intervalLength, q, v, qual, type) for e,t,q,v,qual in rows]
         return result
 
 
