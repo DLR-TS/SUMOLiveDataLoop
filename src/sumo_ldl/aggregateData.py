@@ -219,7 +219,10 @@ def aggregateDetector(start, end, intervalLength, updateInterval):
             setting.dbSchema.AggregateData.getTimeStampLabel(), end,
             Tables.corrected_loop_data.induction_loop_id))
     # bind some variables used during insertion
-    flowFactor = 3600 / intervalLength.seconds
+    if setting.dbSchema.Loop.region_choices[0] == "leipzig":
+        flowFactor = 1
+    else:
+        flowFactor = 3600 / intervalLength.seconds
     ## declare the minimum number of expected vehicles for maximum quality 
     ## at least on per aggregated interval, double for short intervals
     expectedEntryCount = intervalLength.seconds/updateInterval.seconds
