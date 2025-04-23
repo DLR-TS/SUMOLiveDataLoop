@@ -21,7 +21,6 @@ from .detector import DetectorReader, MAX
 from .database import as_time
 from .tools import reversedMap
 
-
 def insertAggregated(conn, typeName, detReader, intervalEnd, intervalLength, isSimulation=False, 
                      doClose=False, flowScale=1.0, expectedEntryCount=0):
     """Insert aggregated data into the database. The data is read from the
@@ -48,7 +47,7 @@ def insertAggregated(conn, typeName, detReader, intervalEnd, intervalLength, isS
             if dataEdge not in edgeMap:
                 unknownEdges += 1
                 if unknownEdges < 10:
-                    sys.stderr.write("Ignoring data for unknown simulation edge '%s'\n" % dataEdge)
+                    sys.stderr.write("Ignoring data for unknown simulation edge '%s'\n" % (dataEdge))
                 continue
             else:
                 edges = edgeMap[dataEdge] # make edge a database-id
