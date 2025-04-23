@@ -284,7 +284,7 @@ Simulating %s to %s,
 </configuration>""" % (simbegSec, tools.daySecond(simEnd, simbegSec)), file=fd)
     fd.close()
     sumoCfg = os.path.join(simInputDir, 'sumo.sumocfg')
-    subprocess.call([getOSDependentLoopOptionPath("sumobinary"), '-c', fd.name, '-C', sumoCfg] + getLoopOption("sumoOptions").split())
+    subprocess.call([getOSDependentLoopOptionPath("sumobinary"), '-c', fd.name, '-C', sumoCfg, '--save-configuration.relative'] + getLoopOption("sumoOptions").split())
     command = getOSDependentLoopOptionPath("sumobinary") + ' -c ' + sumoCfg
     systemStep("Performing the simulation", command, checkDir, currTimeMin)
 
