@@ -649,7 +649,7 @@ def correction_summary(numDatapoints, error_counts, corrected_counts,
 @benchmark
 def correctDetector(isFirst, correctStart, correctEnd, forecastEnd,
                     interpolationWindow, evaluationInterval, updateInterval,
-                    evalQuality=True):
+                    evalQuality=False):
     """
     Correct detector values by checking for obvious errors and
     interpolating (resp. extrapolating) missing values.
