@@ -137,7 +137,7 @@ _GLOBALS = None
 
 def dateToIndex(date):
     """Converts a datetime into an index in the data list."""
-    return (date - _GLOBALS.zeroIndexTime).seconds / _GLOBALS.updateInterval.seconds
+    return (date - _GLOBALS.zeroIndexTime).seconds // _GLOBALS.updateInterval.seconds
                 
 def fixedData(origID, detectorID, date, qPKW, qLKW, vPKW, vLKW, errorCode):
     """
@@ -305,9 +305,9 @@ def polynomialFix(detData, start, end, fix_counts, forecast):
 
             if x:
                 # compute replacement
-                coeffs = Polynomial.fit(x, y, DEGREE)
+                coeffs = Polynomial.fit(x, y, DEGREE).convert().coef
                 for x in range(gapStart, gapEnd):
-                    value = sum([coeffs[-p-1] * x ** p for p in range(len(coeffs))])
+                    value = sum([coeffs[p] * x ** p for p in range(len(coeffs))])
                     if detData[x].fix(attr, value, _GLOBALS.updateInterval):
                         fix_counts[attr]+= 1
 
