@@ -1,0 +1,12 @@
+Data correction:
+1. If multiple data records exist for the specified interval, only the most recent one is used for data correction. It is assumed that the later arriving data is the most updated.
+
+
+------------
+Data aggregation:
+
+
+
+
+
+------------
