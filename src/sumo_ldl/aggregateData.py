@@ -248,7 +248,7 @@ def aggregateDetector(start, end, intervalLength, updateInterval):
         if quality > 0:
             # both flows apply to the same time interval so rowCoverage only
             # needs to be incremented once
-            if setting.getDetectorOptionBool("haslkw") and qLKW > 0:
+            if setting.getDetectorOptionBool("haslkw") and qPKW is not None and qLKW is not None and qLKW > 0:
                 if qPKW > 0 and vPKW is not None and vLKW is not None:
                     vPKW = (vPKW * qPKW + vLKW * qLKW) / (qPKW + qLKW)
                 else:
