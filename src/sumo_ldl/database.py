@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 import psycopg2
 from psycopg2.extras import execute_batch
 
-from . import setting
+from sumo_ldl import setting
 
 try:
     import cx_Oracle

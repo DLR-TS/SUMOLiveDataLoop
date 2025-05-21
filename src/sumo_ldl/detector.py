@@ -22,8 +22,8 @@ from itertools import groupby
 import codecs
 from xml.sax import parse, handler, saxutils
 
-from .tools import reversedMap
-from . import setting
+from sumo_ldl.tools import reversedMap
+from sumo_ldl import setting
 
 MAX_POS_DEVIATION = 10
 
@@ -608,7 +608,7 @@ def get_options():
                          default=False, help="try to guess missing lane information from detector name")
     optParser.add_option("-s", "--schema", help="load the db schema from the given python file")
     optParser.add_option("-E", "--database-engine", type="choice", choices=["oracle", "postgres"],
-                         default="oracle", help="choose the database engine either oracle or postgres")
+                         default="postgres", help="choose the database engine either oracle or postgres")
     options, args = optParser.parse_args()
     return options
 
