@@ -45,7 +45,7 @@ def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterva
             print('    <calibrator id="calibrator_%s" lane="%s_0" pos="0" freq="%s" friendlyPos="x" output="%s"%s>' % (
                 edge, edge, calibratorInterval, logfile, routeProbe), file=f)
             for time, aggInterval, flow, speed, quality, type in sorted(flowsteps):
-                if speed is None or speed > 120.:  # todo: set a filter if speed is very low especially at late night and if speed is very high > 100 except of highway
+                if speed is None: #or speed > 120.:  # todo: filter very low and very high speeds especially at late night in the data correction code (except of highway)
                     speed_attr = '' # disable speed calibration if speed is not known (see METriggeredCalibrator::execute())
                 else:
                     speed_attr = 'speed="%s" ' % (speed / 3.6)

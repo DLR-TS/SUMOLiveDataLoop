@@ -61,70 +61,11 @@ def fusion(start, end, intervalLength):
     fusionTime = start
     while fusionTime <= end:
         fusionTime += intervalLength
-        if getOptionBool("Database", "postgres"):
-            _fusion(conn, detReader, fusionTime, intervalLength)
-        else:
-            _fusionOracle(conn, detReader, fusionTime, intervalLength)
+        _fusion(conn, detReader, fusionTime, intervalLength)
         insertAggregated(conn, "fusion", detReader, fusionTime, intervalLength)
     conn.close()
 
-
-def _fusion(conn, detReader, intervalEnd, intervalLength, filter=''):
-    """XXX this code is not adapted to using an abstract dbSchema
-       XXX care must be taken not to average the fcd-count with the detector flow
-
-    Read traffic data from DB and add data to the given detReader.
-    Fusion according to quality"""
-    # select data intervals containing the fusion interval
-    idQuery = """
-        SELECT traffic_id, traffic_type, aggregation_interval
-        FROM traffic WHERE
-        traffic_time - (aggregation_interval || ' SECOND')::INTERVAL <= '%s' AND traffic_time >= '%s' 
-        AND traffic_type in %s""" % (
-            intervalEnd-intervalLength, intervalEnd, tuple(QUALITY_FACTOR.keys()))
-    rows = database.execSQL(conn, idQuery)
-    if len(rows) == 0:
-        return
-    trafficIDs = {}
-    for id, type, aggregation_interval in rows:
-        trafficIDs[id] = (type, int(aggregation_interval))
-    query = """
-        SELECT edge_id, traffic_id, q, v, quality
-        FROM aggregated_traffic a WHERE
-        traffic_id in (%s) %s
-        ORDER BY edge_id, quality""" % (','.join(map(str, list(trafficIDs.keys()))), filter)
-    #print query
-    rows = database.execSQL(conn, query)
-    for edge, subrows in groupby(rows, lambda x:x[0]):
-        qFusion = FusionValue()
-        vFusion = FusionValue()
-        # DEBUG
-        #if int(edge) == 178828 and intervalEnd == datetime(2012,5,1,1,45): 
-        #    import pdb; pdb.set_trace()
-        for edge, traffic_id, q, v, quality in subrows:
-            type, aggregation_interval = trafficIDs[traffic_id]
-            # since multiple fcd intervals may cover this fusion interval, we reduced their relative weight
-            adaptedQuality = int(quality) * QUALITY_FACTOR[type] 
-            adaptedWeight = adaptedQuality * intervalLength.seconds / aggregation_interval
-            # using quality as fusion weight
-            qFusion.add(q, adaptedQuality, adaptedWeight)
-            vFusion.add(v, adaptedQuality, adaptedWeight)
-        flow, flowQual = qFusion.getValueAndQualityPercent()
-        speed, speedQual = vFusion.getValueAndQualityPercent()
-        # fix inconsistent values
-        if flow == 0 and speed > 0:
-            flow = 1
-        if speed == 0 and flow > 0:
-            speed = None
-        quality = max(flowQual, speedQual)
-        if quality > 0:
-            if not detReader.hasEdge(edge):
-                detReader.addGroup(0, edge)
-                detReader.addDetector(edge, 0, edge)
-            detReader.addFlow(edge, flow, speed, quality)
-
-
-def _fusionOracle(conn, detReader, intervalEnd, intervalLength):
+def _fusion(conn, detReader, intervalEnd, intervalLength):
     """XXX care must be taken not to average the fcd-count with the detector flow
 
     Read traffic data from DB and add data to the given detReader.
@@ -132,15 +73,16 @@ def _fusionOracle(conn, detReader, intervalEnd, intervalLength):
     rows = {}
     for source in ("loop", "fcd"):
         intervalTable, dataTable, qCol, vCol = dbSchema.AggregateData.getSchema(source)
-        query = """SELECT fbd_id, '%s', %s, %s, d.quality
+        query = """SELECT edge_id, '%s', %s, %s, d.quality
             FROM %s i, %s d WHERE i.%s = d.%s AND
-            i.%s > TIMESTAMP '%s' AND i.%s <= TIMESTAMP '%s' 
-            ORDER BY fbd_id, d.quality""" % (
+            i.%s > '%s' AND i.%s <= '%s'
+            ORDER BY edge_id, d.quality""" % (
             source, qCol, vCol, intervalTable, dataTable,
             intervalTable.traffic_id, intervalTable.traffic_id,
             intervalTable.traffic_time, intervalEnd - intervalLength,
             intervalTable.traffic_time, intervalEnd)
         rows[source] = database.execSQL(conn, query)
+
     for edge, subrows in groupby(chain(rows["loop"], rows["fcd"]), lambda x:x[0]):
         qFusion = FusionValue()
         vFusion = FusionValue()
@@ -155,11 +97,11 @@ def _fusionOracle(conn, detReader, intervalEnd, intervalLength):
         flow, flowQual = qFusion.getValueAndQualityPercent()
         speed, speedQual = vFusion.getValueAndQualityPercent()
         # fix inconsistent values
-        if flow == 0 and speed > 0:
+        if flow == 0 and (speed or 0) > 0:
             flow = 1
-        if speed == 0 and flow > 0:
+        if speed == 0 and (flow or 0) > 0:
             speed = None
-        quality = max(flowQual, speedQual)
+        quality = max(flowQual or 0, speedQual or 0)
         if quality > 0:
             if not detReader.hasEdge(edge):
                 detReader.addGroup(0, edge)

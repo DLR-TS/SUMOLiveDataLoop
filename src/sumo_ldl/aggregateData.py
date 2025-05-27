@@ -317,6 +317,27 @@ def _getFilteredFCD(conn, start, end, waittime):
             end,
             Tables.floating_car_data.coverage,
             Tables.floating_car_data.data_time)
+    elif setting.dbSchema.Loop.region_choices[0] == "leipzig":
+        query = """
+        SELECT f.edge_id, f.%s, f.%s, f.%s * 100, NULL, NULL, NULL
+        FROM %s f, %s e LEFT JOIN %s t ON e.edge_id = t.%s
+        WHERE f.edge_id = e.edge_id AND
+              f.%s > '%s' AND f.%s <= '%s'
+              AND f.%s > 0
+        ORDER BY f.%s""" % (
+            Tables.floating_car_data.v_kfz,
+            Tables.floating_car_data.data_time,
+            Tables.floating_car_data.coverage,
+            Tables.floating_car_data,
+            Tables.edge,
+            Tables.traffic_signal,
+            Tables.traffic_signal.edge_id,
+            Tables.floating_car_data.data_time,
+            start,
+            Tables.floating_car_data.data_time,
+            end,
+            Tables.floating_car_data.coverage,
+            Tables.floating_car_data.data_time)
     else:
         query = """
         SELECT f.edge_id, f.%s, f.%s, f.%s, f.veh_id, CASE WHEN t.traffic_signal_id IS NULL THEN '' ELSE 'trafficlight' END, e.length
@@ -345,7 +366,7 @@ def _getFilteredFCD(conn, start, end, waittime):
     for row in rows[1:]:
         # edge, speed, time, coverage, veh, tls, edge_length
         lastRow = newRows[-1]
-        if row[0] == lastRow[0] and row[4] == lastRow[4]:
+        if row[0] == lastRow[0] and row[4] == lastRow[4] and row[4] is not None:
             # combine two sightings of the same vehicle on the same edge
             lastRow[1] = (lastRow[3] * lastRow[1] + row[3] * row[1]) / (row[3] + lastRow[3])
             lastRow[3] = min(100, lastRow[3] + row[3])

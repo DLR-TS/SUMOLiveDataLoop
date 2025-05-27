@@ -90,10 +90,10 @@ def get_traffic_ids(conn, type, intervalEnds):
     intervalTable = dbSchema.AggregateData.getSchema(type)[0]
     command = """select %s, %s from %s where %s in (%s)
                  %s
-                """ % (dbSchema.Tables.loop_traffic.traffic_id,
-                        dbSchema.Tables.traffic.traffic_time,
+                """ % (intervalTable.traffic_id,
+                        intervalTable.traffic_time,
                         intervalTable,
-                        dbSchema.Tables.traffic.traffic_time,
+                        intervalTable.traffic_time,
                         times, 
                         dbSchema.Extrapolation.getTypePredicate(type))
     #print 'command:\n', command
