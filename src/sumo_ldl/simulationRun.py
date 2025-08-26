@@ -298,7 +298,8 @@ Simulating %s to %s,
                        generateEmissionOutput.interpret_emission,
                        (emissionfile, aggregation, emissionInterpretation),
                        checkDir, currTimeMin)
-        pythonStep("Generating comparison data",
+        if not hasOption("Loop", "comparison") or getLoopOptionBool("comparison"):
+            pythonStep("Generating comparison data",
                    aggregateData.generateComparison,
                    (os.path.join(simOutputDir, "compare.txt"),
                     setting.startTime, ["loop", "fusion",  "simulation", "prediction"]), checkDir, currTimeMin)
