@@ -77,7 +77,7 @@ def _init(dbSchema, loopDir):
         print("Error! The repeat interval length should be a divider of 1440.")
         sys.exit(1)
     
-    setting.startTime = setting.getOptionDate("Loop", "starttime", options.begin)
+    setting.startTime =  tools.roundToMinute(setting.getOptionDate("Loop", "starttime", options.begin), repeatTime, tools.ROUND_DOWN)
     setting.endTime = setting.getOptionDate("Loop", "endtime", options.end)
     setting.timeline = options.timeline
 

@@ -66,7 +66,13 @@ def getOptionMinute(section, option):
 def getOptionDate(section, option, override=None):
     if override:
         return datetime.strptime(override, "%Y-%m-%d %H:%M")
-    return datetime.strptime(getOption(section, option), "%Y-%m-%d %H:%M")
+
+    date = getOption(section, option)
+    if date[0] == '-':
+        hour, minute = date[1:].split(":")
+        delta = timedelta(hours=int(hour), minutes=int(minute))
+        return datetime.now() - delta
+    return datetime.strptime(date, "%Y-%m-%d %H:%M")
 
 def getOptionInt(section, option):
     return _CONFIG.getint(section, _checkSubOption(section, option))
