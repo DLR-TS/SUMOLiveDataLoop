@@ -12,33 +12,42 @@
 A XML ContentHandler which parses a SUMO emission file for NOx, CO2, CO, HC, PMx on
 edges and writes the results to the DB. Usually it is called from *.py.
 """
-import os, sys, datetime
-from xml.sax import make_parser, handler
-from configparser import SafeConfigParser
-from optparse import OptionParser
+import csv
+import datetime
+import gzip
+import sys
 
-from .detector import DetectorReader
-from .aggregateData import insertAggregated
 from . import setting
 from . import database
 
-class EmissionReader(handler.ContentHandler):
+class EmissionReader:
     """ContentHandler for parsing SUMO emission outputs.
        It automatically parses the file given to the constructor."""
 
-    def __init__(self, emissionfile, emissionInterpretation):
-        handler.ContentHandler.__init__(self)
+    def __init__(self, emissionfile, emissionInterpretation, emissionNormed):
         self._emissionInterpretation = emissionInterpretation
         self._out = {} # file objects for outfiles for the dumpID
         self._detReader = {} # one detector reader for every dumpID
-        self._activeID = None # the dumpId of the currently parsed interval
         self._aggregation = None # the length of the currently parsed interval in seconds
         if emissionInterpretation:
-            for id, (time, traffic_type, filename) in list(emissionInterpretation.items()):
+            for id in emissionInterpretation.keys():
                 self._detReader[id] = []
-        parser = make_parser()
-        parser.setContentHandler(self)
-        parser.parse(emissionfile)
+        with gzip.open(emissionfile, "rt") as input:
+            for data in csv.DictReader(input, delimiter=";"):
+                interval_id = data['interval_id']
+                start = float(data['interval_begin'])
+                end = float(data['interval_end'])
+                if interval_id not in self._emissionInterpretation:
+                    print("WARNING: found unknown emission data interval '%s'" % interval_id, file=sys.stderr)
+                    continue
+                self._aggregation = end - start
+                edge = data['edge_id']
+                CO = float(data['edge_CO_normed' if emissionNormed else 'edge_CO_abs'])
+                CO2 = float(data['edge_CO2_normed' if emissionNormed else 'edge_CO2_abs'])
+                HC = float(data['edge_HC_normed' if emissionNormed else 'edge_HC_abs'])
+                PMx = float(data['edge_PMx_normed' if emissionNormed else 'edge_PMx_abs'])
+                NOx = float(data['edge_NOx_normed' if emissionNormed else 'edge_NOx_abs'])
+                self._detReader[interval_id].append((edge, (NOx, CO, PMx, HC, CO2)))
 
     def updateDB(self, intervalLength=None, base=None):
         if intervalLength is None:
@@ -48,38 +57,8 @@ class EmissionReader(handler.ContentHandler):
                 insertEmission(None, trafficType, self._detReader[id], time, intervalLength)
 
 
-    def startElement(self, name, attrs):
-        """Called at each start of an XML element.
-           Parses "interval" and "edge" attributes."""
-        if name == 'interval':
-            id = attrs['id']
-            start = float(attrs['begin'])
-            end = float(attrs['end'])
-            if id in self._emissionInterpretation:
-                self._activeID = id
-            else:
-                print("WARNING: found unknown emission data interval '%s'" % id, file=sys.stderr)
-            self._aggregation = end - start
-        elif name == 'edge' and self._activeID != None:
-            edge = attrs['id']
-            NOx = float(attrs['NOx_normed'])
-            CO = float(attrs['CO_normed'])
-            PMx = float(attrs['PMx_normed'])
-            HC = float(attrs['HC_normed'])
-            CO2 = float(attrs['CO2_normed'])
-
-            valueCollection = self._detReader[self._activeID]
-            valueCollection.append((edge, (NOx, CO, PMx, HC, CO2)))
-
-
-    def endElement(self, name):
-        """Called at each end of an XML element. Ends the "interval"."""
-        if name == 'interval':
-            self._activeID = None
-
-
-def interpret_emission(emissionfile, intervalLength, emissionInterpretation):
-    emissionReader = EmissionReader(emissionfile, emissionInterpretation)
+def interpret_emission(emissionfile, intervalLength, emissionInterpretation, emissionNormed):
+    emissionReader = EmissionReader(emissionfile, emissionInterpretation, emissionNormed)
     emissionReader.updateDB(intervalLength)
 
 

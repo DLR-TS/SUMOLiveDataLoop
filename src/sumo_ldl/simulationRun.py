@@ -80,7 +80,9 @@ def copyBackupClean(root, currTime, simOutputDir):
 
 
 def prepare_dump_helper(type, i, aggregation, finalTime, simbegSec, simOutputDir, 
-        fd, dumpfile, dumpInterpretation, emissionInterpretation=None, emissionfile=None, withInternal=False):   #yp
+                        fd, dumpfile, dumpInterpretation,
+                        emissionInterpretation=None, emissionfile=None, emissionNormed=True,
+                        withInternal=False):
     """writes to dumpAdd fd and adds entry to dumpInterpretation"""
     end = finalTime - i * aggregation
     beg = end - aggregation
@@ -88,13 +90,17 @@ def prepare_dump_helper(type, i, aggregation, finalTime, simbegSec, simOutputDir
     begSec = tools.daySecond(beg, simbegSec)
     id = '%s%s' % (type, i)
     file = (os.path.join(simOutputDir, '%s.txt' % type) if i == 0 else None)
-    print('    <edgeData id="%s" begin="%s" end="%s" file="%s" excludeEmpty="true" withInternal="%s"/>' % (   # only for huainan todo: check with the simulation performance if data from the internal links should be used.
+    print('    <edgeData id="%s" begin="%s" end="%s" file="%s" excludeEmpty="true" withInternal="%s" writeAttributes="speed departed entered vaporized"/>' % (   # only for huainan todo: check with the simulation performance if data from the internal links should be used.
             id, begSec, endSec, dumpfile, withInternal), file=fd)
     dumpInterpretation[id] = (end, type, file)
     if emissionfile:
         file = (os.path.join(simOutputDir, 'emission_%s.txt' % type) if i == 0 else None)
-        print('    <edgeData id="%s" begin="%s" end="%s" file="%s" type="emissions" excludeEmpty="true" withInternal="%s"/>' % (
-                id, begSec, endSec, emissionfile, withInternal), file=fd)
+        if emissionNormed:
+            attributes = ["%s_normed" % e for e in ('CO', 'CO2', 'HC', 'PMx', 'NOx', 'fuel', 'electricity')]
+        else:
+            attributes = ["%s_abs" % e for e in ('CO', 'CO2', 'HC', 'PMx', 'NOx', 'fuel', 'electricity')]
+        print('    <edgeData id="%s" begin="%s" end="%s" file="%s" type="emissions" excludeEmpty="true" withInternal="%s" writeAttributes="%s"/>' % (
+                id, begSec, endSec, emissionfile, withInternal, " ".join(attributes)), file=fd)
         emissionInterpretation[id] = (end, type, file)
     
 
@@ -107,19 +113,19 @@ def prepare_dump(simInputDir, simOutputDir, simbegSec, startTime, simEnd, aggreg
     if restSeconds > 0:
         print("Warning: Repeat is not a multiple of aggregation.  Aggregated_traffic and simulation_traffic will be out of sync.")
     dumpAdd =  'dump.add.xml'
-    dumpfile = os.path.abspath(os.path.join(simOutputDir, 'dump_%s_%s.xml' % (
+    dumpfile = os.path.abspath(os.path.join(simOutputDir, 'dump_%s_%s.csv.gz' % (
         startTime.strftime("%H-%M"), aggregation.seconds))) 
     emissionfile = None
     if emissionOutput:
         emissionInterpretation = {}   # edgeDataID -> (intervalEnd, traffic_type, fileName|None)
-        emissionfile = os.path.abspath(os.path.join(simOutputDir, 'emission_%s_%s.xml' % (
+        emissionfile = os.path.abspath(os.path.join(simOutputDir, 'emission_%s_%s.csv.gz' % (
             startTime.strftime("%H-%M"), aggregation.seconds))) 
     with open(os.path.join(simInputDir, dumpAdd), "w") as fd:
         print("<a>", file=fd)
         for i in range(numDumpsSimulation):
-            prepare_dump_helper('simulation', i, aggregation, startTime, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, withInternal)
+            prepare_dump_helper('simulation', i, aggregation, startTime, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, True, withInternal)
         for i in range(numDumpsPrediction):
-            prepare_dump_helper('prediction', i, aggregation, simEnd, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, withInternal)
+            prepare_dump_helper('prediction', i, aggregation, simEnd, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, True, withInternal)
         print("</a>", file=fd)
     return dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation
 
