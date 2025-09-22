@@ -302,7 +302,7 @@ Simulating %s to %s,
         if os.path.exists(emissionfile):
             pythonStep("Writing simulated emission data to files and DB",
                        generateEmissionOutput.interpret_emission,
-                       (emissionfile, aggregation, emissionInterpretation),
+                       (emissionfile, aggregation, emissionInterpretation, True),
                        checkDir, currTimeMin)
         if not hasOption("Loop", "comparison") or getLoopOptionBool("comparison"):
             pythonStep("Generating comparison data",

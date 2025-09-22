@@ -26,7 +26,6 @@ class EmissionReader:
 
     def __init__(self, emissionfile, emissionInterpretation, emissionNormed):
         self._emissionInterpretation = emissionInterpretation
-        self._out = {} # file objects for outfiles for the dumpID
         self._detReader = {} # one detector reader for every dumpID
         self._aggregation = None # the length of the currently parsed interval in seconds
         if emissionInterpretation:
@@ -53,7 +52,7 @@ class EmissionReader:
         if intervalLength is None:
             intervalLength = datetime.timedelta(seconds=self._aggregation)
         if self._emissionInterpretation:
-            for id, (time, trafficType, filename) in list(self._emissionInterpretation.items()):
+            for id, (time, trafficType, filename) in self._emissionInterpretation.items():
                 insertEmission(None, trafficType, self._detReader[id], time, intervalLength)
 
 
@@ -98,7 +97,7 @@ def insertEmission(conn, typeName, detReader, intervalEnd, intervalLength):
             entryCount += 1
             values[database_id] = (NOx, CO, PMx, HC, CO2, entryCount)
     insertRows = []
-    for edge, (NOx, CO, PMx, HC, CO2, entryCount) in list(values.items()):
+    for edge, (NOx, CO, PMx, HC, CO2, entryCount) in values.items():
         if entryCount > 0:
             insertRows.append((trafficIndex, edge, NOx, CO, PMx, HC, CO2, None))
     # perform DB write
