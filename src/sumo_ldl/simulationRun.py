@@ -23,16 +23,13 @@ from .step import systemStep, pythonStep
 
 STATE_FILE = "state.xml.gz"
 
-def buildDirs(root, currTime, timeformat, repeat, simBegin):
-    checkDir = os.path.join(root, 'check', currTime.strftime(timeformat))
-    simInputDir = os.path.join(root, 'sim_inputs', currTime.strftime(timeformat))
-    simOutputDir = os.path.join(root, 'sim_outputs', currTime.strftime(timeformat))
-    lastStateDir = os.path.join(root, 'sim_outputs', (currTime-repeat).strftime(timeformat))
+def buildDirs(root, currTime, timeformat, repeat):
+    simDir = os.path.join(root, currTime.strftime(timeformat))
+    lastStateDir = os.path.join(root, (currTime-repeat).strftime(timeformat))
     statefile = os.path.join(lastStateDir, STATE_FILE)
-    for outdir in [checkDir, simInputDir, simOutputDir]:
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-    return checkDir, simInputDir, simOutputDir, statefile
+    if not os.path.exists(simDir):
+        os.makedirs(simDir)
+    return simDir, statefile
 
 def onRemovalError(func, path, exc_info):
     print("Warning! Could not remove %s." % path, file=sys.stderr)
@@ -106,7 +103,7 @@ def prepare_dump_helper(type, i, aggregation, finalTime, simbegSec, simOutputDir
         emissionInterpretation[id] = (end, type, file)
     
 
-def prepare_dump(simInputDir, simOutputDir, simbegSec, startTime, simEnd, aggregation, repeat, forecast, emissionOutput, withInternal):
+def prepare_dump(simDir, simbegSec, startTime, simEnd, aggregation, repeat, forecast, emissionOutput, withInternal):
     """prepares the edgeData output and the necessary information for parsing
     this output. There should be enough dumps to cover all aggregation intervals"""
     dumpInterpretation = {} # edgeDataID -> (intervalEnd, traffic_type, fileName|None)
@@ -115,21 +112,22 @@ def prepare_dump(simInputDir, simOutputDir, simbegSec, startTime, simEnd, aggreg
     if restSeconds > 0:
         print("Warning: Repeat is not a multiple of aggregation.  Aggregated_traffic and simulation_traffic will be out of sync.")
     dumpAdd =  'dump.add.xml'
-    dumpfile = os.path.abspath(os.path.join(simOutputDir, 'dump_%s_%s.csv.gz' % (
+    dumpfile = os.path.abspath(os.path.join(simDir, 'dump_%s_%s.csv.gz' % (
         startTime.strftime("%H-%M"), aggregation.seconds))) 
     emissionfile = None
     if emissionOutput:
         emissionInterpretation = {}   # edgeDataID -> (intervalEnd, traffic_type, fileName|None)
-        emissionfile = os.path.abspath(os.path.join(simOutputDir, 'emission_%s_%s.csv.gz' % (
+        emissionfile = os.path.abspath(os.path.join(simDir, 'emission_%s_%s.csv.gz' % (
             startTime.strftime("%H-%M"), aggregation.seconds))) 
-    with open(os.path.join(simInputDir, dumpAdd), "w") as fd:
+    with open(os.path.join(simDir, dumpAdd), "w") as fd:
         print("<a>", file=fd)
         for i in range(numDumpsSimulation):
-            prepare_dump_helper('simulation', i, aggregation, startTime, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, True, withInternal)
+            prepare_dump_helper('simulation', i, aggregation, startTime, simbegSec, simDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, True, withInternal)
         for i in range(numDumpsPrediction):
-            prepare_dump_helper('prediction', i, aggregation, simEnd, simbegSec, simOutputDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, True, withInternal)
+            prepare_dump_helper('prediction', i, aggregation, simEnd, simbegSec, simDir, fd, dumpfile, dumpInterpretation, emissionInterpretation, emissionfile, True, withInternal)
         print("</a>", file=fd)
     return dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation
+
 
 def main(doStartEmpty, beginNewDay, loopDir, options):
     scenario = options.scenario
@@ -179,17 +177,11 @@ Simulating %s to %s,
             setting.scenarioID = rows[0][0]
         conn.close()
     resultDirs = pythonStep("Building directories", buildDirs,
-                            (os.path.join(root, scenario), setting.startTime, "%Y_%m_%d_%H-%M-%S",
-                             repeat, simBegin))
-    if resultDirs == None:
-        print("Warning! Building directories failed, retrying once.")
-        resultDirs = pythonStep("Building directories", buildDirs,
-                                (region, setting.startTime, "%Y_%m_%d_%H-%M-%S",
-                                 repeat, simBegin, loopDir))
-    if resultDirs == None:
+                            (os.path.join(root, scenario), setting.startTime, "%Y_%m_%d_%H-%M-%S", repeat))
+    if resultDirs is None:
         print("Error! Building directories failed, exiting.")
         return False
-    checkDir, simInputDir, simOutputDir, statefile = resultDirs
+    simDir, statefile = resultDirs
     if not setting.edges:
         edgePkl = open(os.path.join(root, "infra", "edges.pkl"), 'rb')
         setting.edges = pickle.load(edgePkl)
@@ -197,7 +189,7 @@ Simulating %s to %s,
 
     resultGenerateCalibrators = pythonStep("Generating calibrator input",
                       generateSimulationInput.generateCalibrators,
-                      (simInputDir, simBegin, forecastStart, simEnd, simOutputDir), checkDir, currTimeMin)
+                      (simDir, simBegin, forecastStart, simEnd, simDir), simDir, currTimeMin)
     if resultGenerateCalibrators is None:
         print("Error! Generation of calibrators failed, exiting")
         return False
@@ -213,7 +205,7 @@ Simulating %s to %s,
             and simbegSec == 0):
         print("'clearState=true': starting empty on new day.")
         doStartEmpty = True
-    routeOutput = os.path.join(simInputDir, "static.rou.xml")
+    routeOutput = os.path.join(simDir, "static.rou.xml")
     adds = [routeOutput] + adds
     #if doStartEmpty:
     adds = getLoopOptionPathList("adds") + adds
@@ -221,17 +213,17 @@ Simulating %s to %s,
     pythonStep("Generating static route distributions",
                routeDistributions.generateStatic,
                (routeOutput, doStartEmpty, simBegin, simEnd, calibratorEdges,
-                os.path.join(root, "infra")), checkDir, currTimeMin)
+                os.path.join(root, "infra")), simDir, currTimeMin)
     if getLoopOptionBool("collectRouteInfo"):
-        routeOutput = os.path.join(simInputDir, "dynamic.rou.xml")
+        routeOutput = os.path.join(simDir, "dynamic.rou.xml")
         pythonStep("Generating dynamic route distributions",
                    routeDistributions.generateDynamic,
                    (routeOutput, doStartEmpty, simBegin, simEnd,
-                    getLoopOptionMinutes("routeInterval")), checkDir, currTimeMin)
+                    getLoopOptionMinutes("routeInterval")), simDir, currTimeMin)
         adds.append(routeOutput)
     blocks = pythonStep("Generating blocking input",
                         generateSimulationInput.handleBlockings,
-                        (simInputDir, simBegin, simEnd), checkDir, currTimeMin)
+                        (simDir, simBegin, simEnd), simDir, currTimeMin)
     if blocks:
         adds += blocks
 
@@ -239,7 +231,7 @@ Simulating %s to %s,
     emissionOutput = hasOption("Loop", "emissionOutput") and getLoopOptionBool("emissionOutput")
     withInternal = hasOption("Loop", "withInternal") and getLoopOptionBool("withInternal")
     
-    dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation = prepare_dump(simInputDir, simOutputDir,
+    dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation = prepare_dump(simDir, simDir,
             simbegSec, setting.startTime, simEnd, aggregation, repeat,
             getLoopOptionMinutes("forecast"), emissionOutput, withInternal)
     adds.append(dumpAdd)
@@ -259,7 +251,7 @@ Simulating %s to %s,
         if tools.daySecond(routeTime) == 0:
             dayOffset = 86400
 
-    fd = open(os.path.join(simInputDir, 'pre.sumocfg'), "w")
+    fd = open(os.path.join(simDir, 'sumo.sumocfg'), "w")
     print("""<configuration>
     <input>
         <net-file value="%s"/>
@@ -274,7 +266,7 @@ Simulating %s to %s,
     <output>
         <save-state.files value="%s"/>
         <save-state.times value="%s"/>
-    </output>""" % (os.path.join(simOutputDir, STATE_FILE),
+    </output>""" % (os.path.join(simDir, STATE_FILE),
                     tools.daySecond(saveStateTime, simbegSec)), file=fd)
 
     print("""    <time>
@@ -291,36 +283,36 @@ Simulating %s to %s,
     </report>
 </configuration>""" % (simbegSec, tools.daySecond(simEnd, simbegSec)), file=fd)
     fd.close()
-    sumoCfg = os.path.join(simInputDir, 'sumo.sumocfg')
+    sumoCfg = os.path.join(simDir, 'sumo.sumocfg')
     subprocess.call([getOSDependentLoopOptionPath("sumobinary"), '-c', fd.name, '-C', sumoCfg, '--save-configuration.relative'] + getLoopOption("sumoOptions").split())
     command = getOSDependentLoopOptionPath("sumobinary") + ' -c ' + sumoCfg
-    systemStep("Performing the simulation", command, checkDir, currTimeMin)
+    systemStep("Performing the simulation", command, simDir, currTimeMin)
 
     if os.path.exists(dumpfile):
         pythonStep("Writing simulation data to files and DB",
                    generateViewerInput.interpret_dump,
                    (dumpfile, aggregation, dumpInterpretation),
-                   checkDir, currTimeMin)
+                   simDir, currTimeMin)
         if os.path.exists(emissionfile):
             pythonStep("Writing simulated emission data to files and DB",
                        generateEmissionOutput.interpret_emission,
                        (emissionfile, aggregation, emissionInterpretation, True),
-                       checkDir, currTimeMin)
+                       simDir, currTimeMin)
         if not hasOption("Loop", "comparison") or getLoopOptionBool("comparison"):
             pythonStep("Generating comparison data",
                    aggregateData.generateComparison,
-                   (os.path.join(simOutputDir, "compare.txt"),
-                    setting.startTime, ["loop", "fusion",  "simulation", "prediction"]), checkDir, currTimeMin)
+                   (os.path.join(simDir, "compare.txt"),
+                    setting.startTime, ["loop", "fusion",  "simulation", "prediction"]), simDir, currTimeMin)
         pythonStep("Copying results, making backups",
-                   copyBackupClean, (root, setting.startTime, simOutputDir), checkDir, currTimeMin)
+                   copyBackupClean, (root, setting.startTime, simDir), simDir, currTimeMin)
         if getOptionInt("Loop", "deleteafterDB") > 0:
             if setting.startTime - setting.lastCleanup > getLoopOptionMinutes("deleteafterDB"):
                 before = setting.startTime - getLoopOptionMinutes("deleteafterDB")
                 pythonStep("Cleaning database",
-                           aggregateData.cleanUp, (before, ["simulation", "prediction"]), checkDir, currTimeMin)
+                           aggregateData.cleanUp, (before, ["simulation", "prediction"]), simDir, currTimeMin)
                 if getLoopOptionBool("emissionOutput"):
                     pythonStep("Cleaning database",
-                               aggregateData.cleanUp, (before, ["simulation", "prediction"], True), checkDir, currTimeMin)
+                               aggregateData.cleanUp, (before, ["simulation", "prediction"], True), simDir, currTimeMin)
                 setting.lastCleanup = setting.startTime
     else:
         print("Warning! Could not find %s, skipping the rest of the iteration." % dumpfile)

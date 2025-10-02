@@ -105,12 +105,13 @@ def generateCalibrators(directory, simBegin, forecastStart, simEnd, simOutputDir
     print("Fetched %s entries for %s edges types=%s TEXTTEST_IGNORE" % (len(rows), len(trafficData), dict(typeCounts)))
     conn.close()
     # write calibrators
-    calibratorAdd = os.path.join(directory, "calibrators.add.xml")
+    calibratorAdd = os.path.join(directory, "calibrators.add.xml.gz")
     _writeCalibrators(calibratorAdd, 
             trafficData, routeInterval,
             tools.daySecond(simBegin), setting.getLoopOption("calibratorInterval"),
-            os.path.join(simOutputDir, "calibrators.log.xml"), setting.getLoopOptionBool('collectRouteInfo')),
+            os.path.join(simOutputDir, "calibrators.log.xml.gz"), setting.getLoopOptionBool('collectRouteInfo')),
     return [calibratorAdd], ListWrapper(flowEdges)
+
 
 def calculateInterval(begin, end, navteqTime):
     """
