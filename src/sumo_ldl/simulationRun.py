@@ -57,12 +57,14 @@ def copyBackupClean(root, currTime, simOutputDir):
         print(currTime, 'TEXTTEST_IGNORE', file=lock)
         lock.close()
         for f in ["simulation", "prediction", "compare"]:
-            print("copy", f, targetDir, 'TEXTTEST_IGNORE')
-            shutil.copyfile(os.path.join(simOutputDir, f + ".txt"), os.path.join(targetDir, f + mdate + ".txt"))
+            filepath = os.path.join(simOutputDir, f + ".txt")
+            if os.path.exists(filepath):
+                print("copy", f, targetDir, 'TEXTTEST_IGNORE')
+                shutil.copyfile(filepath, os.path.join(targetDir, f + mdate + ".txt"))
         print("unlocking", targetDir, 'TEXTTEST_IGNORE')
         os.remove(os.path.join(targetDir, "lock.txt"))
     # delete all files beyond the specified age
-    for deldir in ["sim_outputs", "check", "sim_inputs"]:
+    for deldir in ["sim_outputs", "check", "sim_inputs"] + getLoopOptionPathList("viewerData"):
         for f in sorted(glob.glob(os.path.join(root, deldir, "*"))):
             if datetime.fromtimestamp(os.path.getmtime(f)) < setting.startTime - getLoopOptionMinutes("deleteafter"):
                 shutil.rmtree(f, onerror=onRemovalError)
