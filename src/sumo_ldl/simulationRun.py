@@ -18,15 +18,14 @@ from datetime import datetime, timedelta
 from . import generateSimulationInput, generateViewerInput, routeDistributions, aggregateData, generateEmissionOutput
 from . import setting, tools, database
 from .setting import hasOption, getLoopOption, getOptionInt, getLoopOptionBool, getLoopOptionMinutes,\
-                    getOSDependentLoopOptionPath, getLoopOptionPathList, getDetectorOptionBool
+                    getOSDependentLoopOptionPath, getLoopOptionPathList
 from .step import systemStep, pythonStep
 
 STATE_FILE = "state.xml.gz"
 
 def buildDirs(root, currTime, timeformat, repeat):
-    simDir = os.path.join(root, currTime.strftime(timeformat))
-    lastStateDir = os.path.join(root, (currTime-repeat).strftime(timeformat))
-    statefile = os.path.join(lastStateDir, STATE_FILE)
+    simDir = os.path.join(root, "sim", currTime.strftime(timeformat))
+    statefile = os.path.join(root, "sim", (currTime-repeat).strftime(timeformat), STATE_FILE)
     if not os.path.exists(simDir):
         os.makedirs(simDir)
     return simDir, statefile
@@ -61,7 +60,7 @@ def copyBackupClean(root, currTime, simOutputDir):
         print("unlocking", targetDir, 'TEXTTEST_IGNORE')
         os.remove(os.path.join(targetDir, "lock.txt"))
     # delete all files beyond the specified age
-    for deldir in ["sim_outputs", "check", "sim_inputs"] + getLoopOptionPathList("viewerData"):
+    for deldir in ["sim"] + getLoopOptionPathList("viewerData"):
         for f in sorted(glob.glob(os.path.join(root, deldir, "*"))):
             if datetime.fromtimestamp(os.path.getmtime(f)) < setting.startTime - getLoopOptionMinutes("deleteafter"):
                 shutil.rmtree(f, onerror=onRemovalError)
@@ -231,7 +230,7 @@ Simulating %s to %s,
     emissionOutput = hasOption("Loop", "emissionOutput") and getLoopOptionBool("emissionOutput")
     withInternal = hasOption("Loop", "withInternal") and getLoopOptionBool("withInternal")
     
-    dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation = prepare_dump(simDir, simDir,
+    dumpAdd, dumpfile, dumpInterpretation, emissionfile, emissionInterpretation = prepare_dump(simDir,
             simbegSec, setting.startTime, simEnd, aggregation, repeat,
             getLoopOptionMinutes("forecast"), emissionOutput, withInternal)
     adds.append(dumpAdd)
