@@ -80,7 +80,7 @@ class DumpReader:
     def interpretEdge(attrs):
         """return edge_id, vehPerHour, speed for the given edge attributes"""
         edge = attrs['edge_id']
-        if 'edge_speed' not in attrs:
+        if not attrs.get('edge_speed'):
             return edge, 0, None
         speed = float(attrs['edge_speed'])
         # departed + entered = driving + arrived + left (left includes vaporized due to calibration)
@@ -91,7 +91,7 @@ class DumpReader:
         num_vehs = float(attrs['edge_departed']) + float(attrs['edge_entered'])
         if attrs.get('edge_vaporized'):
             num_vehs -= float(attrs['edge_vaporized'])
-        if not speed >= 0:
+        if speed < 0:
             print("Warning: invalid speed '%s' for edge '%s' when parsing dump" % (speed, edge), file=sys.stderr)
             speed = None
         return edge, num_vehs, speed
