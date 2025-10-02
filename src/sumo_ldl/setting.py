@@ -12,12 +12,11 @@
 Configuration interface for the Delphi simulation setup.
 """
 import os,sys
-from configparser import SafeConfigParser, NoOptionError
+from configparser import ConfigParser, NoOptionError
 from datetime import datetime, timedelta
 
 THIS_DIR = os.path.dirname(__file__)
-_CONFIG = SafeConfigParser({"starttime":
-                            datetime.now().strftime("%Y-%m-%d %H:%M")})
+_CONFIG = ConfigParser({"starttime": datetime.now().strftime("%Y-%m-%d %H:%M")})
 
 # global variables
 startTime = None
@@ -42,7 +41,7 @@ def init(schema, filename="delphi.cfg"):
         _CONFIG.remove_section(section)
     configFile = open(filename)
     loopDir = os.path.dirname(configFile.name)
-    _CONFIG.readfp(configFile)
+    _CONFIG.read_file(configFile)
 
 def _checkSubOption(section, option):
     if _CONFIG.has_option("Loop", "region"):
@@ -55,6 +54,8 @@ def hasOption(section, option):
     return _CONFIG.has_option(section, _checkSubOption(section, option))
 
 def getOption(section, option):
+    if not hasOption(section, option):
+        return ""
     return _CONFIG.get(section, _checkSubOption(section, option))
 
 def getOptionBool(section, option):
@@ -113,7 +114,7 @@ def getOSDependentLoopOptionPath(option):
     try:
         optionValue = _CONFIG.get("Loop", _checkSubOption("Loop", option + "." + os.name))
     except NoOptionError:
-        optionValue = _CONFIG.get("Loop", _checkSubOption("Loop"))         
+        optionValue = _CONFIG.get("Loop", _checkSubOption("Loop"))
     return os.path.join(loopDir, optionValue)
 
 def getLoopOptionPathList(option):
