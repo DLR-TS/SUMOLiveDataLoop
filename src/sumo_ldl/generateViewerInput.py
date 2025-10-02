@@ -89,7 +89,7 @@ class DumpReader:
         # 2) arrived + left - vaporized      <-> detector at the end of the edge
         # calibrators use definition 1 so we do the same here for consistency
         num_vehs = float(attrs['edge_departed']) + float(attrs['edge_entered'])
-        if 'edge_vaporized' in attrs:
+        if attrs.get('edge_vaporized'):
             num_vehs -= float(attrs['edge_vaporized'])
         if not speed >= 0:
             print("Warning: invalid speed '%s' for edge '%s' when parsing dump" % (speed, edge), file=sys.stderr)
