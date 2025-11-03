@@ -22,4 +22,4 @@ python3 -m pip install -e .
 # Differences to the original dsp
 
 - checkData.py has been removed (primary focus: PSM interaction)
-- scenarioClient.py and scenarioTrigger.py ar enot integrarted (focus: running different scenarios, may be re-added later)
+- scenarioClient.py and scenarioTrigger.py are not integrarted (focus: running different scenarios, may be re-added later)
