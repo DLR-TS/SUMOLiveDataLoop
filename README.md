@@ -23,3 +23,9 @@ python3 -m pip install -e .
 
 - checkData.py has been removed (primary focus: PSM interaction)
 - scenarioClient.py and scenarioTrigger.py are not integrarted (focus: running different scenarios, may be re-added later)
+
+
+# Good to know
+- Traffic demand (Routes) for different days fo the weekday (Monday, Tuesday...) can be set under "routesPrefix" in the configurtion file, for example,  ./%(region)s/infra/pkw/pkw_Mon,  ./%(region)s/infra/pkw/pkw_Tue and so on.
+- Currently, only one calibrator.rou.xml is used even when traffic demand on different weekdays is considered.
+- Only routes, extracted from the given traffic demand, on the edges where detector data are available are considered by the calibrator.
