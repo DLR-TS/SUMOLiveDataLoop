@@ -1,0 +1,27 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+
+# Declare files that will always have LF line endings on checkout.
+*.py   text eol=lf
+
+*.xml  text eol=lf
+*.csv  text eol=lf
+*.txt  text eol=lf
+*.po  text eol=lf
+
+# Declare files that will always have CRLF line endings on checkout.
+*.bat     text eol=crlf
+
+# Denote all files that are truly binary and should not be modified.
+*.ico binary
+*.png binary
+*.jpg binary
+*.ttf binary
+
+# files to ignore on export / archive / dist building
+/.gitattributes export-ignore
+/.github export-ignore
+/.gitignore export-ignore
