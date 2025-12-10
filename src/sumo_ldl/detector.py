@@ -195,6 +195,8 @@ class DetectorReader(handler.ContentHandler):
                 for attr in DetectorGroupData.OPTIONAL_FIELDS:
                     if getattr(group, attr): 
                         file.write(' %s="%s"' % (attr, saxutils.escape(getattr(group, attr))))
+                if hasattr(group, "loop_type"):
+                    file.write(' loop_type="%s"' % (group.loop_type))
                 file.write(' street_type="%s" orig_edge="%s">\n' % (group.streetType, edge))
                 if guessLanes:
                     minLane = 9
@@ -324,7 +326,8 @@ class DetectorReader(handler.ContentHandler):
             for attr in Detector.OPTIONAL_FIELDS:
                 if attr in attrs:
                     optional[attr] = attrs[attr]
-            self.addDetector(attrs['id'], float(attrs['pos']), edge, lane, interval, **optional)
+            pos = None if attrs['pos'] in ('None', 'Null', 'NONE', 'NULL') else float(attrs['pos'])
+            self.addDetector(attrs['id'], pos, edge, lane, interval, **optional)
         elif name == 'group':
             group = self.addGroup(float(attrs['pos']), attrs['orig_edge'])            
             if 'group_id' in attrs:
@@ -451,30 +454,31 @@ def readDetectorDB(conn, dismissWhenNoLane=False):
     """
     detReader = DetectorReader()
     command = """
-       SELECT i.induction_loop_group_id, data_id, lane_no, i.description, 
-       i.%s, edge_id, g.%s, street_type, st_astext(g.%s)
-       FROM %s i, %s g
-       WHERE TRUE
-       AND i.induction_loop_group_id = g.induction_loop_group_id
+       SELECT i.induction_loop_group_id, i.id, i.lane_no, i.description,
+       i.%s, n.edge_id, g.%s, g.type, NULL, st_astext(g.%s)
+       FROM %s i, %s g, %s n
+       WHERE i.induction_loop_group_id = g.id AND i.induction_loop_group_id = n.induction_loop_group_id
        ORDER BY i.induction_loop_group_id""" % (
                dbSchema.Tables.induction_loop.loop_interval,
                dbSchema.Tables.induction_loop_group.position,
                dbSchema.Tables.induction_loop_group.geom_wgs84,
                dbSchema.Tables.induction_loop,
-               dbSchema.Tables.induction_loop_group)
+               dbSchema.Tables.induction_loop_group,
+               dbSchema.Tables.induction_loop_group_edge)
     rows = database.execSQL(conn, command)
     reverseEdgeMap = reversedMap(dbSchema.AggregateData.getSimulationEdgeMap(conn))
     for group_id, subrows in groupby(rows, lambda x:x[0]):
         subrows = list(subrows)
-        group_id, data_id, lane_no, description, loop_interval, navteq_id, position, street_type, point = subrows[0]
+        group_id, det_id, lane_no, description, loop_interval, navteq_id, position, loop_type, street_type, point = subrows[0]
         group = detReader.addGroup(position, navteq_id)
         group.description = description
         group.streetType = street_type
+        group.loop_type = loop_type
         for row in subrows:
-            group_id, data_id, lane_no, description, loop_interval, edge_id, position, street_type, point = row
+            group_id, det_id, lane_no, description, loop_interval, edge_id, position, loop_type, street_type, point = row
             edge_id = reverseEdgeMap.get(edge_id, edge_id)
             group.longitude, group.latitude = database.as_lon_lat(point)
-            detReader.addDetector(data_id, position, edge_id, lane_no, loop_interval)
+            detReader.addDetector(str(det_id), position, edge_id, lane_no, loop_interval)
     return detReader
 
 
