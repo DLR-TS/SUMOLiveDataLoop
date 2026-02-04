@@ -284,7 +284,7 @@ def _wait_if_trafficlight(row, waittime):
     #  - increase the speed before the tls because the waittime is simulated
     #time_correction = -waittime.seconds / 2
 
-    edge, speed, time, coverage, veh, tlsFlag, edge_length = row
+    edge, speed, time, quality, coverage, veh, tlsFlag, edge_length = row
     if tlsFlag == 'trafficlight' and speed > 0:
         time_on_edge = edge_length / speed + time_correction
         if time_on_edge > 0: 
@@ -362,12 +362,12 @@ def _getFilteredFCD(conn, start, end, waittime):
         return rows
     newRows = [list(rows[0])]
     for row in rows[1:]:
-        # edge, speed, time, coverage, veh, tls, edge_length
+        # edge, speed, time, quality, coverage, veh, tls, edge_length
         lastRow = newRows[-1]
-        if row[0] == lastRow[0] and row[4] == lastRow[4] and row[4] is not None:
+        if row[0] == lastRow[0] and row[5] == lastRow[5] and row[5] is not None:
             # combine two sightings of the same vehicle on the same edge
-            lastRow[1] = (lastRow[3] * lastRow[1] + row[3] * row[1]) / (row[3] + lastRow[3])
-            lastRow[3] = min(100, lastRow[3] + row[3])
+            lastRow[1] = (lastRow[4] * lastRow[1] + row[4] * row[1]) / (row[4] + lastRow[4])
+            lastRow[3] = min(100, lastRow[4] + row[4])
         else:
             # vehicle was seen only once on the last edge
             _wait_if_trafficlight(lastRow, waittime)
