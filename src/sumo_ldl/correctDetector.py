@@ -805,8 +805,12 @@ Data correction and aggregation from %s to %s
     # 3. Aggregating FCD
     aggregateFCD = getDetectorOptionMinutes("aggregateFCD")
     if aggregateFCD > timedelta(0):
-        aggFCDStart = roundToMinute(correctStart, aggregateFCD, ROUND_DOWN)
-        aggFCDEnd = roundToMinute(correctEnd, aggregateFCD, ROUND_UP)
+        if getDetectorOptionBool("aggregateFCDMovingAverage", True):
+            aggFCDStart = correctStart - aggregateFCD
+            aggFCDEnd = correctEnd
+        else:
+            aggFCDStart = roundToMinute(correctStart, aggregateFCD, ROUND_DOWN)
+            aggFCDEnd = roundToMinute(correctEnd, aggregateFCD, ROUND_UP)
         pythonStep("Aggregating FCD", aggregateData.aggregateFCD,
                    (aggFCDStart, aggFCDEnd, aggregate, aggregateFCD,
                     getDetectorOptionMinutes("tlsWaitFCD")))

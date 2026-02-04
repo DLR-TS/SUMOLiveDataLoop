@@ -383,18 +383,22 @@ def _getFilteredFCD(conn, start, end, waittime):
 
 def aggregateFCD(start, end, period, intervalLength, tlsWait):
     """Time aggregation of FCD in the given interval in subintervals
-       of the given length."""  
+       of the given length.
+       period is repetition interval for the recalculation of FCD data sets.
+       intervalLength is the interval we aggregate over"""  
     conn = database.createDatabaseConnection()
     detReaders = [DetectorReader()]
     nextInterval = start + intervalLength
     nextPeriod = start + period
     for edge, speed, time, coverage, veh, tls, edge_length in _getFilteredFCD(conn, start, end, tlsWait):
         time = as_time(time)
+        # write the finished intervals
         while time > nextInterval and len(detReaders) > 0:
             insertAggregated(conn, "fcd", detReaders.pop(0),
                              nextInterval, intervalLength,
                              expectedEntryCount=intervalLength.seconds/600)
             nextInterval += period
+        # prepare data collection for new intervals if needed
         while time > nextPeriod:
             detReaders.append(DetectorReader())
             nextPeriod += period
