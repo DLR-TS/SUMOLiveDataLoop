@@ -299,7 +299,7 @@ def _getFilteredFCD(conn, start, end, waittime):
         # traffic light handling disabled
         # length could be read from NET_EDGE_FBDandLENGTH_QGIS
         query = """
-        SELECT e.%s, f.%s, f.%s, f.%s, f.veh_id, '', 0
+        SELECT e.%s, f.%s, f.%s, NULL, f.%s / 100, f.veh_id, '', 0
         FROM %s f, %s e
         WHERE f.edge_id = e.%s AND f.%s > TIMESTAMP '%s' AND f.%s <= TIMESTAMP '%s'
               AND f.%s > 0
@@ -319,7 +319,7 @@ def _getFilteredFCD(conn, start, end, waittime):
             Tables.floating_car_data.data_time)
     elif setting.dbSchema.Loop.region_choices[0] == "leipzig":
         query = """
-        SELECT f.edge_id, f.%s, f.%s, f.%s * 100, NULL, NULL, NULL
+        SELECT f.edge_id, f.%s, f.%s, f.%s * 100, NULL, NULL, NULL, NULL
         FROM %s f, %s e LEFT JOIN %s t ON e.edge_id = t.%s
         WHERE f.edge_id = e.edge_id AND
               f.%s > '%s' AND f.%s <= '%s'
@@ -338,7 +338,7 @@ def _getFilteredFCD(conn, start, end, waittime):
             Tables.floating_car_data.data_time)
     else:
         query = """
-        SELECT f.edge_id, f.%s, f.%s, f.%s, f.veh_id, CASE WHEN t.traffic_signal_id IS NULL THEN '' ELSE 'trafficlight' END, e.length
+        SELECT f.edge_id, f.%s, f.%s, NULL, f.%s, f.veh_id, CASE WHEN t.traffic_signal_id IS NULL THEN '' ELSE 'trafficlight' END, e.length
         FROM %s f, %s e LEFT JOIN %s t ON e.edge_id = t.%s
         WHERE f.edge_id = e.edge_id AND 
               f.%s > '%s' AND f.%s <= '%s'
@@ -388,7 +388,7 @@ def aggregateFCD(start, end, period, intervalLength, tlsWait):
     detReaders = [DetectorReader()]
     nextInterval = start + intervalLength
     nextPeriod = start + period
-    for edge, speed, time, coverage, veh, tls, edge_length in _getFilteredFCD(conn, start, end, tlsWait):
+    for edge, speed, time, quality, coverage, veh, tls, edge_length in _getFilteredFCD(conn, start, end, tlsWait):
         time = as_time(time)
         # write the finished intervals
         while time > nextInterval and len(detReaders) > 0:
@@ -405,7 +405,7 @@ def aggregateFCD(start, end, period, intervalLength, tlsWait):
                 detReader.addGroup(0, edge, MAX)
                 detReader.addDetector(edge, 0, edge)
             # coverage of vehicles is averaged as quality indicator and summed for coverage statistic
-            detReader.addFlow(edge, 1, speed, coverage, coverage / 100.0)
+            detReader.addFlow(edge, 1, speed, quality, coverage)
     insertAggregated(conn, "fcd", detReaders.pop(0), nextInterval,
                      intervalLength, doClose=True,
                      expectedEntryCount=intervalLength.seconds/600)
