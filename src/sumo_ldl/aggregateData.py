@@ -335,7 +335,6 @@ def _getFilteredFCD(conn, start, end, waittime):
             start,
             Tables.floating_car_data.data_time,
             end,
-            Tables.floating_car_data.coverage,
             Tables.floating_car_data.data_time)
     else:
         query = """
