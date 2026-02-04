@@ -323,7 +323,6 @@ def _getFilteredFCD(conn, start, end, waittime):
         FROM %s f, %s e LEFT JOIN %s t ON e.edge_id = t.%s
         WHERE f.edge_id = e.edge_id AND
               f.%s > '%s' AND f.%s <= '%s'
-              AND f.%s > 0
         ORDER BY f.%s""" % (
             Tables.floating_car_data.v_kfz,
             Tables.floating_car_data.data_time,

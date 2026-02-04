@@ -15,9 +15,28 @@
 Schema file for use with sumo_ldl
 """
 import os, sys
+
+from sqlalchemy import Integer, DateTime, ForeignKey, String, BigInteger, SmallInteger, TypeDecorator, inspect
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
 from sumo_ldl.tools import Table, noneToNull, SAFE_DIV, reversedMap
 from sumo_ldl.main import main
 from sumo_ldl import database
+
+INFRA_SCHEMA = "tdp_brunswick_infra"
+DATA_SCHEMA = "tdp_brunswick_data"
+
+class Base(DeclarativeBase):
+    pass
+
+class InductionLoop(Base):
+    __tablename__ = INFRA_SCHEMA + ".induction_loop"
+
+class InductionLoopGroup(Base):
+    __tablename__ = INFRA_SCHEMA + ".induction_loop_group"
+
+class InductionLoopData(Base):
+    __tablename__ = DATA_SCHEMA + ".induction_loop_data"
 
 class Tables:
     # only tables and columns which differ between schemas are included
