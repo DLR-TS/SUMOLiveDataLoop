@@ -60,10 +60,11 @@ def fusion(start, end, intervalLength):
     conn = database.createDatabaseConnection()
     fusionTime = start
     while fusionTime <= end:
-        fusionTime += intervalLength
         _fusion(conn, detReader, fusionTime, intervalLength)
         insertAggregated(conn, "fusion", detReader, fusionTime, intervalLength)
+        fusionTime += intervalLength
     conn.close()
+
 
 def _fusion(conn, detReader, intervalEnd, intervalLength):
     """XXX care must be taken not to average the fcd-count with the detector flow
@@ -107,3 +108,4 @@ def _fusion(conn, detReader, intervalEnd, intervalLength):
                 detReader.addGroup(0, edge)
                 detReader.addDetector(edge, 0, edge)
             detReader.addFlow(edge, flow, speed, quality)
+    print("Calculated fusion for", len(detReader.getEdgeDataIterator()), "edges, until", intervalEnd)

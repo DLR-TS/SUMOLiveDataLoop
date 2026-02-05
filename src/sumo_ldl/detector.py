@@ -376,7 +376,7 @@ class DetectorReader(handler.ContentHandler):
         """
         Iterator over pairs of edge and detector groups with associated data.
         """
-        return list(self._edge2DetData.items())
+        return self._edge2DetData.items()
     
     def hasIDs(self):
         """

@@ -391,7 +391,8 @@ def aggregateFCD(start, end, period, intervalLength, tlsWait):
     for edge, speed, time, quality, coverage, veh, tls, edge_length in _getFilteredFCD(conn, start, end, tlsWait):
         time = as_time(time)
         # write the finished intervals
-        while time > nextInterval and len(detReaders) > 0:
+        while detReaders and time > nextInterval:
+            print("Inserting aggregated FCD for", len(detReaders[0].getEdgeDataIterator()), "edges, until", nextInterval)
             insertAggregated(conn, "fcd", detReaders.pop(0),
                              nextInterval, intervalLength,
                              expectedEntryCount=intervalLength.seconds/600)
@@ -406,9 +407,13 @@ def aggregateFCD(start, end, period, intervalLength, tlsWait):
                 detReader.addDetector(edge, 0, edge)
             # coverage of vehicles is averaged as quality indicator and summed for coverage statistic
             detReader.addFlow(edge, 1, speed, quality, coverage)
-    insertAggregated(conn, "fcd", detReaders.pop(0), nextInterval,
-                     intervalLength, doClose=True,
-                     expectedEntryCount=intervalLength.seconds/600)
+    while detReaders and nextInterval <= end:
+        print("Inserting aggregated FCD for", len(detReaders[0].getEdgeDataIterator()), "edges, until", nextInterval)
+        insertAggregated(conn, "fcd", detReaders.pop(0), nextInterval,
+                         intervalLength,
+                         expectedEntryCount=intervalLength.seconds/600)
+        nextInterval += period
+    conn.close()
 
 
 def generateComparison(outfile, time, types):
