@@ -88,7 +88,7 @@ def prepare_dump_helper(type, i, aggregation, finalTime, simbegSec, simOutputDir
     begSec = tools.daySecond(beg, simbegSec)
     id = '%s%s' % (type, i)
     file = (os.path.join(simOutputDir, '%s.txt' % type) if i == 0 else None)
-    print('    <edgeData id="%s" begin="%s" end="%s" file="%s" excludeEmpty="true" withInternal="%s" writeAttributes="speed departed entered vaporized"/>' % (   # only for huainan todo: check with the simulation performance if data from the internal links should be used.
+    print('    <edgeData id="%s" begin="%s" end="%s" file="%s" excludeEmpty="modified" withInternal="%s" writeAttributes="speed departed entered vaporized"/>' % (   # only for huainan todo: check with the simulation performance if data from the internal links should be used.
             id, begSec, endSec, dumpfile, withInternal), file=fd)
     dumpInterpretation[id] = (end, type, file)
     if emissionfile:
@@ -97,7 +97,7 @@ def prepare_dump_helper(type, i, aggregation, finalTime, simbegSec, simOutputDir
             attributes = ["%s_normed" % e for e in ('CO', 'CO2', 'HC', 'PMx', 'NOx', 'fuel', 'electricity')]
         else:
             attributes = ["%s_abs" % e for e in ('CO', 'CO2', 'HC', 'PMx', 'NOx', 'fuel', 'electricity')]
-        print('    <edgeData id="%s" begin="%s" end="%s" file="%s" type="emissions" excludeEmpty="true" withInternal="%s" writeAttributes="%s"/>' % (
+        print('    <edgeData id="%s" begin="%s" end="%s" file="%s" type="emissions" excludeEmpty="modified" withInternal="%s" writeAttributes="%s"/>' % (
                 id, begSec, endSec, emissionfile, withInternal, " ".join(attributes)), file=fd)
         emissionInterpretation[id] = (end, type, file)
     
