@@ -13,8 +13,10 @@ Functions for reading detector data from the database and generating
 appropriate triggers for the simulation. Usually it is called from runStep.py.
 """
 import os, sys, re
-from datetime import datetime, timedelta
+from datetime import timedelta
 from collections import defaultdict
+
+import sumolib
 
 from . import setting, tools, database
 from .setting import dbSchema
@@ -38,8 +40,8 @@ class ListWrapper(list):
 
 def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterval, logfile, collectRouteInfo):
     """Writes the time dependent data to the individual files."""
-    with open(filename, 'w') as f:
-        print('<?xml version="1.0"?>\n<add>', file=f)
+    with sumolib.openz(filename, 'w') as f:
+        sumolib.xml.writeHeader(f, root="additional")
         for edge, flowsteps in flowMap.items():
             routeProbe = (' routeProbe="routedist_%s"' % edge) if collectRouteInfo else ""
             print('    <calibrator id="calibrator_%s" lane="%s_0" pos="0" freq="%s" friendlyPos="x" output="%s"%s>' % (
@@ -51,15 +53,14 @@ def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterva
                     speed_attr = 'speed="%s" ' % (speed / 3.6)
                 flow_attr = '' if flow is None else 'vehsPerHour="%s" ' % flow # disable flow calibration if flow is not known
                 startSecond = tools.daySecond(time - timedelta(seconds=aggInterval), begin)
-                comment, forceMultiplier = (('comment="extrapolation"', 0.5) if type == 'extrapolation' else ('', 1.0))
-                force = quality * forceMultiplier
+                comment = '<!-- extrapolation -->' if type == 'extrapolation' else ''
                 # calibrator prefers the dynamic route distribution (with interval time as suffix) 
                 # and uses the static route distribution as fallback
-                flowElement = '        <flow begin="%s" end="%s" %s%svType="vtypedist" route="routedist_%s" force="%s" %s/>' % (
-                        startSecond, startSecond + aggInterval, flow_attr, speed_attr, edge, force, comment)
+                flowElement = '        <flow begin="%s" end="%s" %s%svType="vtypedist" route="routedist_%s"/>%s' % (
+                        startSecond, startSecond + aggInterval, flow_attr, speed_attr, edge, comment)
                 print(flowElement, file=f)
             print("    </calibrator>", file=f)
-        print("</add>", file=f)
+        print("</additional>", file=f)
 
 
 def generateCalibrators(directory, simBegin, forecastStart, simEnd, simOutputDir):
