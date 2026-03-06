@@ -56,9 +56,8 @@ def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterva
                 comment = '<!-- extrapolation -->' if type == 'extrapolation' else ''
                 # calibrator prefers the dynamic route distribution (with interval time as suffix) 
                 # and uses the static route distribution as fallback
-                flowElement = '        <flow begin="%s" end="%s" %s%svType="vtypedist" route="routedist_%s"/>%s' % (
-                        startSecond, startSecond + aggInterval, flow_attr, speed_attr, edge, comment)
-                print(flowElement, file=f)
+                print('        <flow begin="%s" end="%s" %s%stype="vtypedist" route="routedist_%s"/>%s'
+                       % (startSecond, startSecond + aggInterval, flow_attr, speed_attr, edge, comment), file=f)
             print("    </calibrator>", file=f)
         print("</additional>", file=f)
 
