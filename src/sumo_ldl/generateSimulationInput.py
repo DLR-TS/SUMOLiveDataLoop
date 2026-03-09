@@ -44,19 +44,20 @@ def _writeCalibrators(filename, flowMap, routeInterval, begin, calibratorInterva
         sumolib.xml.writeHeader(f, root="additional")
         for edge, flowsteps in flowMap.items():
             routeProbe = (' routeProbe="routedist_%s"' % edge) if collectRouteInfo else ""
-            print('    <calibrator id="calibrator_%s" lane="%s_0" pos="0" freq="%s" friendlyPos="x" output="%s"%s>' % (
-                edge, edge, calibratorInterval, logfile, routeProbe), file=f)
+            print('    <calibrator id="calibrator_%s" lane="%s_0" pos="0" friendlyPos="x" output="%s"%s>' % (
+                edge, edge, logfile, routeProbe), file=f)
             for time, aggInterval, flow, speed, quality, type in sorted(flowsteps):
                 if speed is None: #or speed > 120.:  # todo: filter very low and very high speeds especially at late night in the data correction code (except of highway)
                     speed_attr = '' # disable speed calibration if speed is not known (see METriggeredCalibrator::execute())
                 else:
                     speed_attr = 'speed="%s" ' % (speed / 3.6)
-                flow_attr = '' if flow is None else 'vehsPerHour="%s" ' % flow # disable flow calibration if flow is not known
+                flow_attr = '' if flow is None else 'vehsPerHour="%s"  type="vtypedist" ' % flow # disable flow calibration if flow is not known
                 startSecond = tools.daySecond(time - timedelta(seconds=aggInterval), begin)
                 comment = '<!-- extrapolation -->' if type == 'extrapolation' else ''
                 # calibrator prefers the dynamic route distribution (with interval time as suffix) 
                 # and uses the static route distribution as fallback
-                print('        <flow begin="%s" end="%s" %s%stype="vtypedist" route="routedist_%s"/>%s'
+                # type defintion when flow is calibrated
+                print('        <flow begin="%s" end="%s" %s%s route="routedist_%s"/>%s'
                        % (startSecond, startSecond + aggInterval, flow_attr, speed_attr, edge, comment), file=f)
             print("    </calibrator>", file=f)
         print("</additional>", file=f)
