@@ -1,5 +1,14 @@
 # SUMO Live Data Loop
 
+This python package allows the repeated execution of [Eclipse SUMO](https://sumo.dlr.de/) in the context of regularly updated
+traffic data such as speeds from floating car data or counts and speeds from induction loops.
+
+Currently it requires a Postgres database as a backend which provides regular updates.
+The configuration is done with a schema python file which encapsulates the database access (gives details on the queries,
+see src/default_schema.py for a template) and a config file in ini format (see default.cfg).
+
+There are two major loops implemented. One for detector data correction and one for the simulation run.
+
 # Setup
 ## Database inspection
 A good idea is to use DBeaver which is cross platform and can handle other databases than oracle as well:
