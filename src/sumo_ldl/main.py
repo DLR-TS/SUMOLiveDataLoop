@@ -81,6 +81,12 @@ def _init(dbSchema, loopDir):
     setting.endTime = setting.getOptionDate("Loop", "endtime", options.end)
     setting.timeline = options.timeline
 
+    options.lockFile = os.path.join(loopDir, setting.getLoopOption("region"), options.confFile + 
+                                    "_%s_%s.lock" % (options.typeOfLoop, options.scenario))
+    if os.path.exists(options.lockFile):
+        print("Error! Lock '%s' exists. If you are sure no concurrent process in running, delete the lock and restart.")
+        sys.exit(1)
+    open(options.lockFile, "w").close()
     if not options.log:
         options.log = os.path.join(setting.getLoopOption("region"), 
                                             "log_%s_%s_%s.txt" % (options.typeOfLoop, options.scenario,
@@ -166,11 +172,18 @@ End time:   %s
     """ % (datetime.now(), setting.startTime))
 
         if not endTimeReached:
-            print("Trying again, new loop start in %.0f seconds..." % secondsToRestart)
-            time.sleep(secondsToRestart) # Please activate this line when using the "while" statement
-            print("...restart now:")
+            try:
+                print("Trying again, new loop start in %.0f seconds..." % secondsToRestart)
+                time.sleep(secondsToRestart) # Please activate this line when using the "while" statement
+                print("...restart now:")
+            except KeyboardInterrupt:
+                print("Interrupted!")
+                endTimeReached = True
         else:
             print("End time reached, exiting.")
+    if os.path.exists(options.lockFile):
+        os.remove(options.lockFile)
+
 
 def sendMessageToPsm(messageString, loopType):
     if loopType != "checkdata":
