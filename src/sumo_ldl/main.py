@@ -81,10 +81,10 @@ def _init(dbSchema, loopDir):
     setting.endTime = setting.getOptionDate("Loop", "endtime", options.end)
     setting.timeline = options.timeline
 
-    options.lockFile = os.path.join(loopDir, setting.getLoopOption("region"), options.confFile + 
-                                    "_%s_%s.lock" % (options.typeOfLoop, options.scenario))
+    suffix = "%s_%s" % (options.typeOfLoop, options.scenario) if options.scenario else options.typeOfLoop
+    options.lockFile = os.path.join(loopDir, setting.getLoopOption("region"), options.confFile + "_%s.lock" % suffix)
     if os.path.exists(options.lockFile):
-        print("Error! Lock '%s' exists. If you are sure no concurrent process in running, delete the lock and restart.")
+        print("Error! Lock '%s' exists. If you are sure no concurrent process in running, delete the lock and restart." % options.lockFile)
         sys.exit(1)
     open(options.lockFile, "w").close()
     if not options.log:
