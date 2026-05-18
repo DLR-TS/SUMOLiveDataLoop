@@ -282,7 +282,7 @@ Simulating %s to %s,
     </report>
 </configuration>""" % (simbegSec, tools.daySecond(simEnd, simbegSec)), file=fd)
     fd.close()
-    if hasOption("skipSimulation") and getLoopOptionBool("skipSimulation"):
+    if hasOption("Loop", "skipSimulation") and getLoopOptionBool("skipSimulation"):
         print("Skipping simulation run")
     else:
         sumoCfg = os.path.join(simDir, 'sumo.sumocfg')
