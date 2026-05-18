@@ -66,7 +66,7 @@ def copyBackupClean(root, currTime, simOutputDir):
                 shutil.rmtree(f, onerror=onRemovalError)
     # delete big files to maintain minimum free disk space
     MIN_FREE_BYTES = 10 * 2**30 # 10GB
-    for f in sorted(glob.glob(os.path.join(root, "sim_outputs", "*", STATE_FILE))):
+    for f in sorted(glob.glob(os.path.join(root, "sim", "*", STATE_FILE))):
         if diskAvailable(f) < MIN_FREE_BYTES:
             try:
                 os.remove(f)
@@ -282,10 +282,13 @@ Simulating %s to %s,
     </report>
 </configuration>""" % (simbegSec, tools.daySecond(simEnd, simbegSec)), file=fd)
     fd.close()
-    sumoCfg = os.path.join(simDir, 'sumo.sumocfg')
-    subprocess.call([getOSDependentLoopOptionPath("sumobinary"), '-c', fd.name, '-C', sumoCfg, '--save-configuration.relative'] + getLoopOption("sumoOptions").split())
-    command = getOSDependentLoopOptionPath("sumobinary") + ' -c ' + sumoCfg
-    systemStep("Performing the simulation", command, simDir, currTimeMin)
+    if hasOption("skipSimulation") and getLoopOptionBool("skipSimulation"):
+        print("Skipping simulation run")
+    else:
+        sumoCfg = os.path.join(simDir, 'sumo.sumocfg')
+        subprocess.call([getOSDependentLoopOptionPath("sumobinary"), '-c', fd.name, '-C', sumoCfg, '--save-configuration.relative'] + getLoopOption("sumoOptions").split())
+        command = getOSDependentLoopOptionPath("sumobinary") + ' -c ' + sumoCfg
+        systemStep("Performing the simulation", command, simDir, currTimeMin)
 
     if os.path.exists(dumpfile):
         pythonStep("Writing simulation data to files and DB",
