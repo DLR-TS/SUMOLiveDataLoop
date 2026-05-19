@@ -60,10 +60,11 @@ def copyBackupClean(root, currTime, simOutputDir):
         print("unlocking", targetDir, 'TEXTTEST_IGNORE')
         os.remove(os.path.join(targetDir, "lock.txt"))
     # delete all files beyond the specified age
-    for deldir in ["sim"] + getLoopOptionPathList("viewerData"):
-        for f in sorted(glob.glob(os.path.join(root, deldir, "*"))):
-            if datetime.fromtimestamp(os.path.getmtime(f)) < setting.startTime - getLoopOptionMinutes("deleteafter"):
-                shutil.rmtree(f, onerror=onRemovalError)
+    if getOptionInt("Loop", "deleteafter") > 0:
+        for deldir in ["sim"] + getLoopOptionPathList("viewerData"):
+            for f in sorted(glob.glob(os.path.join(root, deldir, "*"))):
+                if datetime.fromtimestamp(os.path.getmtime(f)) < setting.startTime - getLoopOptionMinutes("deleteafter"):
+                    shutil.rmtree(f, onerror=onRemovalError)
     # delete big files to maintain minimum free disk space
     MIN_FREE_BYTES = 10 * 2**30 # 10GB
     for f in sorted(glob.glob(os.path.join(root, "sim", "*", STATE_FILE))):
