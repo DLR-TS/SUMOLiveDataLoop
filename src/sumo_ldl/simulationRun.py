@@ -23,6 +23,19 @@ from .step import systemStep, pythonStep
 
 STATE_FILE = "state.xml.gz"
 
+def testSetup():
+    print('******* begin to clean up  the data in the corrected, aggregation, fusion and extrapolation tables')
+    pythonStep("Cleaning the corrected simulation data in database for the test",
+               aggregateData.cleanUp, (None, ["simulation"], False))
+    pythonStep("Cleaning the aggregated detector data in database for the test",
+               aggregateData.cleanUp, (None, ["prediction"], False))
+    pythonStep("Cleaning the aggregated detector data in database for the test",
+               aggregateData.cleanUp, (None, ["extrapolation"], False))
+    pythonStep("Cleaning the corrected simulation data in database for the test",
+               aggregateData.cleanUp, (None, ["simulation"], True))
+    pythonStep("Cleaning the aggregated detector data in database for the test",
+               aggregateData.cleanUp, (None, ["prediction"], True))
+
 def buildDirs(root, currTime, timeformat, repeat):
     simDir = os.path.join(root, "sim", currTime.strftime(timeformat))
     statefile = os.path.join(root, "sim", (currTime-repeat).strftime(timeformat), STATE_FILE)
@@ -131,7 +144,7 @@ def prepare_dump(simDir, simbegSec, startTime, simEnd, aggregation, repeat, fore
 
 def main(doStartEmpty, beginNewDay, loopDir, options):
     scenario = options.scenario
-    if options.clean and doStartEmpty:
+    if (options.clean and doStartEmpty) or options.test:
         if getLoopOptionBool("emissionOutput"):
             pythonStep("Cleaning database",
                    aggregateData.cleanUp, (None, ["simulation", "prediction"], True))

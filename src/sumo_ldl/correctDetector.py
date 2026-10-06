@@ -709,6 +709,16 @@ def correctDetector(isFirst, correctStart, correctEnd, forecastEnd,
     print("end correct errors : %s TEXTTEST_IGNORE" % datetime.now())
     return True
 
+def testSetup():
+    print('******* begin to clean up  the data in the corrected, aggregation, fusion and extrapolation tables')
+    pythonStep("Cleaning the corrected detector data in database for the test",
+               aggregateData.cleanUp, (None, ["correct"], False))
+    pythonStep("Cleaning the aggregated detector data in database for the test",
+               aggregateData.cleanUp, (None, ["loop"], False))
+    pythonStep("Cleaning the aggregated detector data in database for the test",
+               aggregateData.cleanUp, (None, ["fcd"], False))
+    pythonStep("Cleaning the aggregated fusion data in database for the test",
+               aggregateData.cleanUp, (None, ["fusion"], False))
 
 def main(isFirst, beginNewDay, loopDir, options): 
     """

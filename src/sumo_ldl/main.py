@@ -48,6 +48,7 @@ def _init(dbSchema, loopDir):
     optParser.add_option("--no-correction", dest="do_correction", default=True,
             action="store_false", help="Skip detector correction (if already handled by another process)")
     optParser.add_option("--clean", default=False, action="store_true", help="clean tables")
+    optParser.add_option("--test", default=False, action="store_true", help="test")
     (options, args) = optParser.parse_args()
     
     # Reads the settings and processes them to initialize the loop.
@@ -60,16 +61,19 @@ def _init(dbSchema, loopDir):
         sys.exit(1)
 
     setting.setRegion(options.region)
-    
     # type of loop mode
     if options.typeOfLoop == "detector":
         from . import correctDetector
         mainFunc = correctDetector.main
         repeatTime = setting.getDetectorOptionMinutes("repeat")
+        if options.test:
+            correctDetector.testSetup()
     else:
         from . import simulationRun
         mainFunc = simulationRun.main
         repeatTime = setting.getLoopOptionMinutes("repeat")
+        if options.test:
+            simulationRun.testSetup()
 
     repeatMin = repeatTime.seconds / 60
     # repeat time < 1 day else ...
