@@ -1,0 +1,15 @@
+# config.ldl
+
+# the application script
+executable: ../leipzig_schema.py
+
+# Use the active Python interpreter to run it
+interpreter: python
+
+filename_convention_scheme: standard
+full_name: SUMO LiveDataLoop Testing Suite
+
+# Monitor standard error outputs and any generated CSV reports
+[collate_file]
+sumo_ldl_log: stderr.log
+output_data: output/*.txt
