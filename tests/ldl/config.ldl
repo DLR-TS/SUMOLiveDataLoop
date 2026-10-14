@@ -5,3 +5,6 @@ executable:runner.py
 interpreter:python
 
 copy_test_path:runner.py
+
+[run_dependent_text]
+output:TEXTTEST_IGNORE

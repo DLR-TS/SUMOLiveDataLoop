@@ -1,1 +1,211 @@
-['runner.py', '-t', 'detector', '--test']
+dbSchema set to Leipzig
+******* begin to clean up  the data in the corrected, aggregation, fusion and extrapolation tables
+step#1
+ (Cleaning corrected detector data in the database for daily testing)
+ Call: cleanUp(None, ['correct'], False) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_data.induction_loop_data_raw_corrected
+deleted 0 intervals of type correct
+step#1 ok,
+...needed 0:00:00.695891 (0:00:00.284585) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Cleaning aggregated detector data in the database for daily testing)
+ Call: cleanUp(None, ['loop'], False) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.induction_loop_aggreg_history
+deleted 6 intervals of type loop
+step#2 ok,
+...needed 0:00:00.641815 (0:00:00.291580) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Cleaning aggregated detector data in the database for daily testing)
+ Call: cleanUp(None, ['fcd'], False) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.fcd_aggregated_history
+deleted 3 intervals of type fcd
+step#3 ok,
+...needed 0:00:00.708513 (0:00:00.320008) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Cleaning aggregated fusion data in the database for daily testing)
+ Call: cleanUp(None, ['fusion'], False) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.fusion_aggregated_history
+deleted 7 intervals of type fusion
+step#4 ok,
+...needed 0:00:00.717201 (0:00:00.318206) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Log file: leipzig\log_detector__2025_09_01_09-00-00.txt TEXTTEST_IGNORE
+*****************************************************************************
+Starting loop
+
+Current time: 2026-10-14 16:06:38.692622 TEXTTEST_IGNORE
+Start time:   2025-09-01 09:00:00
+Will repeat every 0:05:00 
+*****************************************************************************
+Executing first step immediately
+-----------------------------------------------------------------------------
+Data correction and aggregation from 2025-09-01 08:50:00 to 2025-09-01 09:10:00
+ with data forecast up to 2025-09-01 09:40:00,
+ starting at 2026-10-14 16:06:39.125148. TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+step#1
+ (Correcting detector data with updateInterval 0:05:00)
+ Call: correctDetector(True, datetime.datetime(2025, 9, 1, 8, 50), datetime.datetime(2025, 9, 1, 9, 10), datetime.datetime(2025, 9, 1, 9, 10), datetime.timedelta(seconds=14400), datetime.timedelta(days=1), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+db-lines read: 185, written 332
+attr	errors	corrected	forecast_needed,	forecast
+qPKW	0	0	0	0
+qLKW	0	0	0	0
+vPKW	10	0	0	0
+vLKW	75	0	0	0
+end correct errors : 2026-10-14 16:06:39.878860 TEXTTEST_IGNORE
+step#1 ok,
+...needed 0:00:00.753712 (0:00:00.495395) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Aggregating detector data with updateInterval 0:05:00)
+ Call: aggregateDetector(datetime.datetime(2025, 9, 1, 8, 50), datetime.datetime(2025, 9, 1, 9, 10), datetime.timedelta(seconds=300), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+step#2 ok,
+...needed 0:00:02.632241 (0:00:02.287619) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Aggregating FCD)
+ Call: aggregateFCD(datetime.datetime(2025, 9, 1, 8, 20), datetime.datetime(2025, 9, 1, 9, 10), datetime.timedelta(seconds=300), datetime.timedelta(seconds=1800), datetime.timedelta(0)) TEXTTEST_IGNORE
+Inserting aggregated FCD for 0 edges, until 2025-09-01 08:50:00
+step#3 ok,
+...needed 0:00:00.666943 (0:00:00.324535) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Data fusion)
+ Call: fusion(datetime.datetime(2025, 9, 1, 8, 50), datetime.datetime(2025, 9, 1, 9, 10), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+Calculated fusion for 0 edges, until 2025-09-01 08:50:00
+Calculated fusion for 28 edges, until 2025-09-01 08:55:00
+Calculated fusion for 28 edges, until 2025-09-01 09:00:00
+Calculated fusion for 28 edges, until 2025-09-01 09:05:00
+Calculated fusion for 28 edges, until 2025-09-01 09:10:00
+step#4 ok,
+...needed 0:00:03.257091 (0:00:02.923885) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#5
+ (Data extrapolation)
+ Call: main(datetime.datetime(2025, 9, 1, 9, 10), datetime.datetime(2025, 9, 1, 9, 40), datetime.timedelta(seconds=300), 'fusion') TEXTTEST_IGNORE
+Fetched 112 values and kept 112 for 28 edges TEXTTEST_IGNORE
+Extrapolated 0 data points for 0 edges with average quality None TEXTTEST_IGNORE
+step#5 ok,
+...needed 0:00:01.855249 (0:00:01.509171) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Data correction and aggregation ended at 2026-10-14 16:06:48.290384. TEXTTEST_IGNORE
+Duration: 0:00:09.165236 TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+Delayed by 408 days, 7:00:48.290384! TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+Data correction and aggregation from 2025-09-01 08:55:00 to 2025-09-01 09:15:00
+ with data forecast up to 2025-09-01 09:45:00,
+ starting at 2026-10-14 16:06:48.290384. TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+step#1
+ (Correcting detector data with updateInterval 0:05:00)
+ Call: correctDetector(False, datetime.datetime(2025, 9, 1, 8, 55), datetime.datetime(2025, 9, 1, 9, 15), datetime.datetime(2025, 9, 1, 9, 15), datetime.timedelta(seconds=14400), datetime.timedelta(days=1), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+db-lines read: 184, written 83
+attr	errors	corrected	forecast_needed,	forecast
+qPKW	0	0	0	0
+qLKW	0	0	0	0
+vPKW	3	0	0	0
+vLKW	20	0	0	0
+end correct errors : 2026-10-14 16:06:48.879139 TEXTTEST_IGNORE
+step#1 ok,
+...needed 0:00:00.588755 (0:00:00.235236) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Aggregating detector data with updateInterval 0:05:00)
+ Call: aggregateDetector(datetime.datetime(2025, 9, 1, 8, 55), datetime.datetime(2025, 9, 1, 9, 15), datetime.timedelta(seconds=300), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+step#2 ok,
+...needed 0:00:02.133018 (0:00:01.780692) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Aggregating FCD)
+ Call: aggregateFCD(datetime.datetime(2025, 9, 1, 8, 25), datetime.datetime(2025, 9, 1, 9, 15), datetime.timedelta(seconds=300), datetime.timedelta(seconds=1800), datetime.timedelta(0)) TEXTTEST_IGNORE
+Inserting aggregated FCD for 0 edges, until 2025-09-01 08:55:00
+step#3 ok,
+...needed 0:00:00.662825 (0:00:00.320505) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Data fusion)
+ Call: fusion(datetime.datetime(2025, 9, 1, 8, 55), datetime.datetime(2025, 9, 1, 9, 15), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+Calculated fusion for 28 edges, until 2025-09-01 08:55:00
+Calculated fusion for 28 edges, until 2025-09-01 09:00:00
+Calculated fusion for 28 edges, until 2025-09-01 09:05:00
+Calculated fusion for 28 edges, until 2025-09-01 09:10:00
+Calculated fusion for 28 edges, until 2025-09-01 09:15:00
+step#4 ok,
+...needed 0:00:02.923235 (0:00:02.552396) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#5
+ (Data extrapolation)
+ Call: main(datetime.datetime(2025, 9, 1, 9, 15), datetime.datetime(2025, 9, 1, 9, 45), datetime.timedelta(seconds=300), 'fusion') TEXTTEST_IGNORE
+Fetched 140 values and kept 140 for 28 edges TEXTTEST_IGNORE
+Extrapolated 0 data points for 0 edges with average quality None TEXTTEST_IGNORE
+step#5 ok,
+...needed 0:00:00.923929 (0:00:00.593788) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Data correction and aggregation ended at 2026-10-14 16:06:55.522146. TEXTTEST_IGNORE
+Duration: 0:00:07.231762 TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+Delayed by 408 days, 6:55:55.523144! TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+Data correction and aggregation from 2025-09-01 09:00:00 to 2025-09-01 09:20:00
+ with data forecast up to 2025-09-01 09:50:00,
+ starting at 2026-10-14 16:06:55.523144. TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+step#1
+ (Correcting detector data with updateInterval 0:05:00)
+ Call: correctDetector(False, datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 20), datetime.datetime(2025, 9, 1, 9, 20), datetime.timedelta(seconds=14400), datetime.timedelta(days=1), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+db-lines read: 184, written 83
+attr	errors	corrected	forecast_needed,	forecast
+qPKW	0	0	0	0
+qLKW	0	0	0	0
+vPKW	3	0	0	0
+vLKW	20	0	0	0
+end correct errors : 2026-10-14 16:06:56.112907 TEXTTEST_IGNORE
+step#1 ok,
+...needed 0:00:00.589763 (0:00:00.232859) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Aggregating detector data with updateInterval 0:05:00)
+ Call: aggregateDetector(datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 20), datetime.timedelta(seconds=300), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+step#2 ok,
+...needed 0:00:02.087595 (0:00:01.743899) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Aggregating FCD)
+ Call: aggregateFCD(datetime.datetime(2025, 9, 1, 8, 30), datetime.datetime(2025, 9, 1, 9, 20), datetime.timedelta(seconds=300), datetime.timedelta(seconds=1800), datetime.timedelta(0)) TEXTTEST_IGNORE
+Inserting aggregated FCD for 0 edges, until 2025-09-01 09:00:00
+step#3 ok,
+...needed 0:00:00.757005 (0:00:00.368220) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Data fusion)
+ Call: fusion(datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 20), datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+Calculated fusion for 28 edges, until 2025-09-01 09:00:00
+Calculated fusion for 28 edges, until 2025-09-01 09:05:00
+Calculated fusion for 28 edges, until 2025-09-01 09:10:00
+Calculated fusion for 28 edges, until 2025-09-01 09:15:00
+Calculated fusion for 28 edges, until 2025-09-01 09:20:00
+step#4 ok,
+...needed 0:00:03.237959 (0:00:02.842626) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#5
+ (Data extrapolation)
+ Call: main(datetime.datetime(2025, 9, 1, 9, 20), datetime.datetime(2025, 9, 1, 9, 50), datetime.timedelta(seconds=300), 'fusion') TEXTTEST_IGNORE
+Fetched 168 values and kept 168 for 28 edges TEXTTEST_IGNORE
+Extrapolated 0 data points for 0 edges with average quality None TEXTTEST_IGNORE
+step#5 ok,
+...needed 0:00:00.936115 (0:00:00.594102) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Data correction and aggregation ended at 2026-10-14 16:07:03.132584. TEXTTEST_IGNORE
+Duration: 0:00:07.609440 TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+*****************************************************************************
+Loop ended
+
+Current time: 2026-10-14 16:07:03.132584 TEXTTEST_IGNORE
+End time:   2025-09-01 09:10:00
+*****************************************************************************    
+End time reached, exiting.
