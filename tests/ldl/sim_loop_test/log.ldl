@@ -1,0 +1,337 @@
+Log file: C:\Users\wang_yu\.texttest\tmp\ldl.14Oct165839.14580\ldl\sim_loop_test\ldl_log.txt TEXTTEST_IGNORE
+*****************************************************************************
+Starting loop
+
+Current time: 2026-10-14 16:58:44.323888 TEXTTEST_IGNORE
+Start time:   2025-09-01 09:00:00
+Will repeat every 0:05:00 
+*****************************************************************************
+Executing first step immediately
+step#6
+ (Cleaning database)
+ Call: cleanUp(None, ['simulation', 'prediction'], True) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_emission_history
+deleted 0 intervals of type simulation
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_emission_pred_history
+deleted 0 intervals of type prediction
+step#6 ok,
+...needed 0:00:00.916654 (0:00:00.560134) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#7
+ (Cleaning database)
+ Call: cleanUp(None, ['simulation', 'prediction']) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_traffic_history
+deleted 0 intervals of type simulation
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_traffic_prediction_history
+deleted 0 intervals of type prediction
+step#7 ok,
+...needed 0:00:01.021399 (0:00:00.644347) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+-----------------------------------------------------------------------------
+Simulating 2025-09-01 08:50:00 to 2025-09-01 09:30:00,
+ starting at 2026-10-14 16:58:46.264293. TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#1
+ (Building directories)
+ Call: buildDirs('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\', datetime.datetime(2025, 9, 1, 9, 0), '%Y_%m_%d_%H-%M-%S', datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+step#1 ok,
+...needed 0:00:00.001011 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Generating calibrator input)
+ Call: generateCalibrators('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00', datetime.datetime(2025, 9, 1, 8, 50), datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 30), 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\02generateCalibrators_09-00.txt TEXTTEST_IGNORE
+Fetched 168 entries for 28 edges types={'fusion': 168} TEXTTEST_IGNORE
+step#2 ok,
+...needed 0:00:00.825846 (0:00:00.422915) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Generating static route distributions)
+ Call: generateStatic('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\static.rou.xml', True, datetime.datetime(2025, 9, 1, 8, 50), datetime.datetime(2025, 9, 1, 9, 30), <list with 28 items [34465,31654,13437,18776,28412, ...]>, 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\infra') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\03generateStatic_09-00.txt TEXTTEST_IGNORE
+Warning: no existing route distribtuion file sutiable for 29160
+Warning: the file for edges {'29160'} does not exist.
+step#3 ok,
+...needed 0:00:00.695103 (0:00:00.333273) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Generating blocking input)
+ Call: handleBlockings('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00', datetime.datetime(2025, 9, 1, 8, 50), datetime.datetime(2025, 9, 1, 9, 30)) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\04handleBlockings_09-00.txt TEXTTEST_IGNORE
+step#4 ok,
+...needed 0:00:00.497951 (0:00:00.105946) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#5
+ (Performing the simulation)
+ Call: C:\sumo-git\bin\sumo.exe -c C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\sumo.sumocfg TEXTTEST_IGNORE
+ redirecting stdout to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\05sumo_09-00.txt and stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\05sumoError_09-00.txt TEXTTEST_IGNORE
+step#5 had warnings,
+...needed 0:01:17.779262 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#6
+ (Writing simulation data to files and DB)
+ Call: interpret_dump('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\dump_09-00_300.csv.gz', datetime.timedelta(seconds=300), {'simulation0': (datetime.datetime(2025, 9, 1, 9, 0), 'simulation', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\simulation.txt'), 'prediction0': (datetime.datetime(2025, 9, 1, 9, 30), 'prediction', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\prediction.txt'), 'prediction1': (datetime.datetime(2025, 9, 1, 9, 25), 'prediction', None), 'prediction2': (datetime.datetime(2025, 9, 1, 9, 20), 'prediction', None), 'prediction3': (datetime.datetime(2025, 9, 1, 9, 15), 'prediction', None), 'prediction4': (datetime.datetime(2025, 9, 1, 9, 10), 'prediction', None), 'prediction5': (datetime.datetime(2025, 9, 1, 9, 5), 'prediction', None)}) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\06interpret_dump_09-00.txt TEXTTEST_IGNORE
+step#6 ok,
+...needed 0:01:40.347494 (0:01:36.571544) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#7
+ (Writing simulated emission data to files and DB)
+ Call: interpret_emission('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\emission_09-00_300.csv.gz', datetime.timedelta(seconds=300), {'simulation0': (datetime.datetime(2025, 9, 1, 9, 0), 'simulation', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\emission_simulation.txt'), 'prediction0': (datetime.datetime(2025, 9, 1, 9, 30), 'prediction', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\emission_prediction.txt'), 'prediction1': (datetime.datetime(2025, 9, 1, 9, 25), 'prediction', None), 'prediction2': (datetime.datetime(2025, 9, 1, 9, 20), 'prediction', None), 'prediction3': (datetime.datetime(2025, 9, 1, 9, 15), 'prediction', None), 'prediction4': (datetime.datetime(2025, 9, 1, 9, 10), 'prediction', None), 'prediction5': (datetime.datetime(2025, 9, 1, 9, 5), 'prediction', None)}, True) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\07interpret_emission_09-00.txt TEXTTEST_IGNORE
+step#7 ok,
+...needed 0:01:57.452466 (0:01:54.268180) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#8
+ (Generating comparison data)
+ Call: generateComparison('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00\\compare.txt', datetime.datetime(2025, 9, 1, 9, 0), ['loop', 'fusion', 'simulation', 'prediction']) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\08generateComparison_09-00.txt TEXTTEST_IGNORE
+step#8 ok,
+...needed 0:00:01.948869 (0:00:00.840864) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#9
+ (Copying results, making backups)
+ Call: copyBackupClean('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig', datetime.datetime(2025, 9, 1, 9, 0), 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-00-00') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\09copyBackupClean_09-00.txt TEXTTEST_IGNORE
+locking C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy simulation C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy prediction C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy compare C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+unlocking C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+Exception caught!
+step#9 ok,
+...needed 0:00:00.025917 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#10
+ (Cleaning database)
+ Call: cleanUp(datetime.datetime(2025, 8, 22, 9, 0), ['simulation', 'prediction']) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\10cleanUp_09-00.txt TEXTTEST_IGNORE
+deleted 0 items from tdp_leipzig_sumo2024q2.sumo_traffic_history
+deleted 0 intervals of type simulation
+deleted 0 items from tdp_leipzig_sumo2024q2.sumo_traffic_prediction_history
+deleted 0 intervals of type prediction
+step#10 ok,
+...needed 0:00:00.879464 (0:00:00.547127) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#11
+ (Cleaning database)
+ Call: cleanUp(datetime.datetime(2025, 8, 22, 9, 0), ['simulation', 'prediction'], True) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-00-00\11cleanUp_09-00.txt TEXTTEST_IGNORE
+deleted 0 items from tdp_leipzig_sumo2024q2.sumo_emission_history
+deleted 0 intervals of type simulation
+deleted 0 items from tdp_leipzig_sumo2024q2.sumo_emission_pred_history
+deleted 0 intervals of type prediction
+step#11 ok,
+...needed 0:00:01.012488 (0:00:00.632375) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Simulation of 2025-09-01 08:50:00 to 2025-09-01 09:30:00
+ ended at 2026-10-14 17:03:47.853072. TEXTTEST_IGNORE
+Duration: 0:05:01.588779 TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+Delayed by 408 days, 7:56:47.854079! TEXTTEST_IGNORE
+step#12
+ (Cleaning database)
+ Call: cleanUp(None, ['simulation', 'prediction'], True) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_emission_history
+deleted 1 intervals of type simulation
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_emission_pred_history
+deleted 6 intervals of type prediction
+step#12 ok,
+...needed 0:00:00.909134 (0:00:00.578304) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#13
+ (Cleaning database)
+ Call: cleanUp(None, ['simulation', 'prediction']) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_traffic_history
+deleted 1 intervals of type simulation
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_traffic_prediction_history
+deleted 6 intervals of type prediction
+step#13 ok,
+...needed 0:00:00.910766 (0:00:00.562661) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+-----------------------------------------------------------------------------
+Simulating 2025-09-01 08:55:00 to 2025-09-01 09:35:00,
+ starting at 2026-10-14 17:03:49.675283. TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#1
+ (Building directories)
+ Call: buildDirs('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\', datetime.datetime(2025, 9, 1, 9, 5), '%Y_%m_%d_%H-%M-%S', datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+step#1 ok,
+...needed 0:00:00.001011 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Generating calibrator input)
+ Call: generateCalibrators('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00', datetime.datetime(2025, 9, 1, 8, 55), datetime.datetime(2025, 9, 1, 9, 5), datetime.datetime(2025, 9, 1, 9, 35), 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\02generateCalibrators_09-05.txt TEXTTEST_IGNORE
+Fetched 140 entries for 28 edges types={'fusion': 140} TEXTTEST_IGNORE
+step#2 ok,
+...needed 0:00:00.855538 (0:00:00.464602) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Generating static route distributions)
+ Call: generateStatic('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\static.rou.xml', False, datetime.datetime(2025, 9, 1, 8, 55), datetime.datetime(2025, 9, 1, 9, 35), <list with 28 items [34465,31654,13437,18776,28412, ...]>, 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\infra') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\03generateStatic_09-05.txt TEXTTEST_IGNORE
+Warning: no existing route distribtuion file sutiable for 29160
+Warning: the file for edges {'29160'} does not exist.
+step#3 ok,
+...needed 0:00:00.816265 (0:00:00.375568) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Generating blocking input)
+ Call: handleBlockings('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00', datetime.datetime(2025, 9, 1, 8, 55), datetime.datetime(2025, 9, 1, 9, 35)) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\04handleBlockings_09-05.txt TEXTTEST_IGNORE
+step#4 ok,
+...needed 0:00:00.438871 (0:00:00.092039) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#5
+ (Performing the simulation)
+ Call: C:\sumo-git\bin\sumo.exe -c C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\sumo.sumocfg TEXTTEST_IGNORE
+ redirecting stdout to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\05sumo_09-05.txt and stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\05sumoError_09-05.txt TEXTTEST_IGNORE
+step#5 had warnings,
+...needed 0:01:30.960978 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#6
+ (Writing simulation data to files and DB)
+ Call: interpret_dump('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\dump_09-05_300.csv.gz', datetime.timedelta(seconds=300), {'simulation0': (datetime.datetime(2025, 9, 1, 9, 5), 'simulation', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\simulation.txt'), 'prediction0': (datetime.datetime(2025, 9, 1, 9, 35), 'prediction', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\prediction.txt'), 'prediction1': (datetime.datetime(2025, 9, 1, 9, 30), 'prediction', None), 'prediction2': (datetime.datetime(2025, 9, 1, 9, 25), 'prediction', None), 'prediction3': (datetime.datetime(2025, 9, 1, 9, 20), 'prediction', None), 'prediction4': (datetime.datetime(2025, 9, 1, 9, 15), 'prediction', None), 'prediction5': (datetime.datetime(2025, 9, 1, 9, 10), 'prediction', None)}) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\06interpret_dump_09-05.txt TEXTTEST_IGNORE
+step#6 ok,
+...needed 0:01:35.959498 (0:01:32.185416) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#7
+ (Writing simulated emission data to files and DB)
+ Call: interpret_emission('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\emission_09-05_300.csv.gz', datetime.timedelta(seconds=300), {'simulation0': (datetime.datetime(2025, 9, 1, 9, 5), 'simulation', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\emission_simulation.txt'), 'prediction0': (datetime.datetime(2025, 9, 1, 9, 35), 'prediction', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\emission_prediction.txt'), 'prediction1': (datetime.datetime(2025, 9, 1, 9, 30), 'prediction', None), 'prediction2': (datetime.datetime(2025, 9, 1, 9, 25), 'prediction', None), 'prediction3': (datetime.datetime(2025, 9, 1, 9, 20), 'prediction', None), 'prediction4': (datetime.datetime(2025, 9, 1, 9, 15), 'prediction', None), 'prediction5': (datetime.datetime(2025, 9, 1, 9, 10), 'prediction', None)}, True) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\07interpret_emission_09-05.txt TEXTTEST_IGNORE
+step#7 ok,
+...needed 0:01:54.638138 (0:01:51.524301) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#8
+ (Generating comparison data)
+ Call: generateComparison('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00\\compare.txt', datetime.datetime(2025, 9, 1, 9, 5), ['loop', 'fusion', 'simulation', 'prediction']) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\08generateComparison_09-05.txt TEXTTEST_IGNORE
+step#8 ok,
+...needed 0:00:02.960084 (0:00:01.471437) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#9
+ (Copying results, making backups)
+ Call: copyBackupClean('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig', datetime.datetime(2025, 9, 1, 9, 5), 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-05-00') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-05-00\09copyBackupClean_09-05.txt TEXTTEST_IGNORE
+locking C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy simulation C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy prediction C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy compare C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+unlocking C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+Exception caught!
+step#9 ok,
+...needed 0:00:00.017511 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Simulation of 2025-09-01 08:55:00 to 2025-09-01 09:35:00
+ ended at 2026-10-14 17:08:56.426818. TEXTTEST_IGNORE
+Duration: 0:05:06.751535 TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+Delayed by 408 days, 7:56:56.426818! TEXTTEST_IGNORE
+step#10
+ (Cleaning database)
+ Call: cleanUp(None, ['simulation', 'prediction'], True) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_emission_history
+deleted 1 intervals of type simulation
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_emission_pred_history
+deleted 6 intervals of type prediction
+step#10 ok,
+...needed 0:00:01.044676 (0:00:00.648569) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#11
+ (Cleaning database)
+ Call: cleanUp(None, ['simulation', 'prediction']) TEXTTEST_IGNORE
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_traffic_history
+deleted 1 intervals of type simulation
+deleted -1 items from tdp_leipzig_sumo2024q2.sumo_traffic_prediction_history
+deleted 6 intervals of type prediction
+step#11 ok,
+...needed 0:00:01.128387 (0:00:00.717309) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+-----------------------------------------------------------------------------
+Simulating 2025-09-01 09:00:00 to 2025-09-01 09:40:00,
+ starting at 2026-10-14 17:08:58.599881. TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#1
+ (Building directories)
+ Call: buildDirs('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\', datetime.datetime(2025, 9, 1, 9, 10), '%Y_%m_%d_%H-%M-%S', datetime.timedelta(seconds=300)) TEXTTEST_IGNORE
+step#1 ok,
+...needed 0:00:00 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#2
+ (Generating calibrator input)
+ Call: generateCalibrators('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00', datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 10), datetime.datetime(2025, 9, 1, 9, 40), 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\02generateCalibrators_09-10.txt TEXTTEST_IGNORE
+Fetched 112 entries for 28 edges types={'fusion': 112} TEXTTEST_IGNORE
+step#2 ok,
+...needed 0:00:01.745862 (0:00:00.830485) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#3
+ (Generating static route distributions)
+ Call: generateStatic('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\static.rou.xml', False, datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 40), <list with 28 items [34465,31654,13437,18776,28412, ...]>, 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\infra') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\03generateStatic_09-10.txt TEXTTEST_IGNORE
+Warning: no existing route distribtuion file sutiable for 29160
+Warning: the file for edges {'29160'} does not exist.
+step#3 ok,
+...needed 0:00:01.312317 (0:00:00.430233) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#4
+ (Generating blocking input)
+ Call: handleBlockings('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00', datetime.datetime(2025, 9, 1, 9, 0), datetime.datetime(2025, 9, 1, 9, 40)) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\04handleBlockings_09-10.txt TEXTTEST_IGNORE
+step#4 ok,
+...needed 0:00:00.467673 (0:00:00.102085) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#5
+ (Performing the simulation)
+ Call: C:\sumo-git\bin\sumo.exe -c C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\sumo.sumocfg TEXTTEST_IGNORE
+ redirecting stdout to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\05sumo_09-10.txt and stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\05sumoError_09-10.txt TEXTTEST_IGNORE
+step#5 had warnings,
+...needed 0:01:31.621512 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#6
+ (Writing simulation data to files and DB)
+ Call: interpret_dump('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\dump_09-10_300.csv.gz', datetime.timedelta(seconds=300), {'simulation0': (datetime.datetime(2025, 9, 1, 9, 10), 'simulation', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\simulation.txt'), 'prediction0': (datetime.datetime(2025, 9, 1, 9, 40), 'prediction', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\prediction.txt'), 'prediction1': (datetime.datetime(2025, 9, 1, 9, 35), 'prediction', None), 'prediction2': (datetime.datetime(2025, 9, 1, 9, 30), 'prediction', None), 'prediction3': (datetime.datetime(2025, 9, 1, 9, 25), 'prediction', None), 'prediction4': (datetime.datetime(2025, 9, 1, 9, 20), 'prediction', None), 'prediction5': (datetime.datetime(2025, 9, 1, 9, 15), 'prediction', None)}) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\06interpret_dump_09-10.txt TEXTTEST_IGNORE
+step#6 ok,
+...needed 0:01:33.064620 (0:01:29.326059) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#7
+ (Writing simulated emission data to files and DB)
+ Call: interpret_emission('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\emission_09-10_300.csv.gz', datetime.timedelta(seconds=300), {'simulation0': (datetime.datetime(2025, 9, 1, 9, 10), 'simulation', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\emission_simulation.txt'), 'prediction0': (datetime.datetime(2025, 9, 1, 9, 40), 'prediction', 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\emission_prediction.txt'), 'prediction1': (datetime.datetime(2025, 9, 1, 9, 35), 'prediction', None), 'prediction2': (datetime.datetime(2025, 9, 1, 9, 30), 'prediction', None), 'prediction3': (datetime.datetime(2025, 9, 1, 9, 25), 'prediction', None), 'prediction4': (datetime.datetime(2025, 9, 1, 9, 20), 'prediction', None), 'prediction5': (datetime.datetime(2025, 9, 1, 9, 15), 'prediction', None)}, True) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\07interpret_emission_09-10.txt TEXTTEST_IGNORE
+step#7 ok,
+...needed 0:02:09.740331 (0:02:06.505033) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#8
+ (Generating comparison data)
+ Call: generateComparison('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00\\compare.txt', datetime.datetime(2025, 9, 1, 9, 10), ['loop', 'fusion', 'simulation', 'prediction']) TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\08generateComparison_09-10.txt TEXTTEST_IGNORE
+step#8 ok,
+...needed 0:00:01.947447 (0:00:00.844112) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+step#9
+ (Copying results, making backups)
+ Call: copyBackupClean('C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig', datetime.datetime(2025, 9, 1, 9, 10), 'C:\\Wang\\repos\\simo\\trunk\\projects\\Leipzig\\sumo_online_test\\leipzig\\sim\\2025_09_01_09-10-00') TEXTTEST_IGNORE
+ redirecting stderr to C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\sim\2025_09_01_09-10-00\09copyBackupClean_09-10.txt TEXTTEST_IGNORE
+locking C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy simulation C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy prediction C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+copy compare C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+unlocking C:\Wang\repos\simo\trunk\projects\Leipzig\sumo_online_test\leipzig\simdata TEXTTEST_IGNORE
+Exception caught!
+step#9 ok,
+...needed 0:00:00.015062 (0:00:00) TEXTTEST_IGNORE
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Simulation of 2025-09-01 09:00:00 to 2025-09-01 09:40:00
+ ended at 2026-10-14 17:14:19.073313. TEXTTEST_IGNORE
+Duration: 0:05:20.473432 TEXTTEST_IGNORE
+-----------------------------------------------------------------------------
+*****************************************************************************
+Loop ended
+
+Current time: 2026-10-14 17:14:19.073313 TEXTTEST_IGNORE
+End time:   2025-09-01 09:10:00
+*****************************************************************************    
+End time reached, exiting.
