@@ -8,3 +8,8 @@ copy_test_path:runner.py
 
 [run_dependent_text]
 output:TEXTTEST_IGNORE
+log:TEXTTEST_IGNORE
+
+[collate_file]
+log:ldl_log.txt
+
